@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { FaCaretRight } from "react-icons/fa";
-import Button from "./button";
+import Button from "./Button";
+import CodeEditor from "../components/CodeEditor";
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
@@ -29,7 +30,7 @@ const Navbar = () => {
                 <span>Open File</span>
                 <span>Ctrl+O</span>
               </li>
-              <li className="flex space-x-14 px-4 py-2 hover:bg-gray-700 hover:text-white cursor-pointer border-b border-gray-700">
+              <li className="flex space-x-14 px-4 py-2 hover:bg-orange-400 hover:text-white cursor-pointer border-b border-gray-700">
                 <span>Open Recent</span>
                 <span><FaCaretRight /></span>
               </li>
