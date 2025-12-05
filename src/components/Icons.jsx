@@ -11,8 +11,8 @@ const Navbar = () => {
   const [open5, setOpen5] = useState(false);
   return (
     <>
-    <nav className="w-full text-black-100 shadow-md">
-      <ul className="flex gap-5 px-5 text-lg font-small text-sm"> 
+    <nav className="bg-gray-900 text-gray-200 px-5 select-none shadow-lg">
+      <ul className="flex gap-7">
         <li 
           className="relative hover:text-blue-400 cursor-pointer transition"
           onMouseEnter={() => setOpen(true)}
