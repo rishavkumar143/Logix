@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { FaCaretRight } from "react-icons/fa";
 import Button from "./Button";
-import CodeEditor from "../components/CodeEditor";
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
@@ -12,8 +11,8 @@ const Navbar = () => {
   const [open5, setOpen5] = useState(false);
   return (
     <>
-    <nav className="w-full text-black-100 shadow-md">
-      <ul className="flex gap-5 px-5 text-lg font-small text-sm"> 
+    <nav className="bg-white text-black px-3 select-none shadow-lg">
+      <ul className="flex gap-7">
         <li 
           className="relative hover:text-blue-400 cursor-pointer transition"
           onMouseEnter={() => setOpen(true)}
@@ -21,7 +20,7 @@ const Navbar = () => {
         >
           File
           {open && (
-            <ul className="absolute left-0 mt-2 bg-gray-800 shadow-xl rounded-lg w-50 py-2 animate-fadeIn border border-gray-700">
+            <ul className="absolute left-0 mt-0 bg-gray-800 shadow-xl rounded-lg w-50 py-2 animate-fadeIn border border-gray-700">
               <li className="flex space-x-20 px-4 py-2 hover:bg-gray-700 hover:text-white cursor-pointer">
                 <span>New</span>
                 <span>Ctrl+N</span>
@@ -30,9 +29,9 @@ const Navbar = () => {
                 <span>Open File</span>
                 <span>Ctrl+O</span>
               </li>
-              <li className="flex space-x-14 px-4 py-2 hover:bg-orange-400 hover:text-white cursor-pointer border-b border-gray-700">
+              <li className="flex space-x-14 px-4 py-2 hover:bg-gray-700 hover:text-white cursor-pointer border-b border-gray-700">
                 <span>Open Recent</span>
-                <span><FaCaretRight /></span>
+                <span className="mt-1"><FaCaretRight /></span>
               </li>
               <li className="px-4 py-2 hover:bg-gray-700 hover:text-white cursor-pointer border-b border-gray-700">Open Project Folder</li>
               <li className="px-4 py-2 hover:bg-gray-700 hover:text-white cursor-pointer">Exit</li>
@@ -46,7 +45,7 @@ const Navbar = () => {
         onMouseLeave={()=>setOpen1(false)}
         >Edit
         {open1 && (
-          <ul className="absolute left-0 mt-2 bg-gray-800 shadow-xl rounded-lg w-40 py-2 animate-fadeIn border border-gray-700">
+          <ul className="absolute left-0 mt-0 bg-gray-800 shadow-xl rounded-lg w-40 py-2 animate-fadeIn border border-gray-700">
           <li className="flex space-x-5 px-4 py-2 hover:bg-gray-700 hover:text-white cursor-pointer">
             <span>Undo</span>
             <span>Ctrl+Z</span>
@@ -68,7 +67,7 @@ const Navbar = () => {
         onMouseLeave={()=>setOpen2(false)}
         >View
         {open2 && (
-          <ul className="absolute left-0 mt-2 bg-gray-800 shadow-xl rounded-lg w-50 py-2 animate-fadeIn border border-gray-700">
+          <ul className="absolute left-0 mt-0 bg-gray-800 shadow-xl rounded-lg w-50 py-2 animate-fadeIn border border-gray-700">
           <li className="flex space-x-14 px-4 py-2 hover:bg-gray-700 hover:text-white cursor-pointer">
             <span>Zoom In</span>
             <span>Ctrl++</span>
@@ -92,7 +91,7 @@ const Navbar = () => {
         onMouseLeave={()=>setOpen3(false)}
         >Generate
         {open3 && (
-          <ul className="absolute left-0 mt-2 bg-gray-800 shadow-xl rounded-lg w-60 py-2 animate-fadeIn border border-gray-700">
+          <ul className="absolute left-0 mt-0 bg-gray-800 shadow-xl rounded-lg w-60 py-2 animate-fadeIn border border-gray-700">
           <li className="px-4 py-2 hover:bg-gray-700 hover:text-white cursor-pointer">Generate UVM TestBench </li>
           <li className="px-4 py-2 hover:bg-gray-700 hover:text-white cursor-pointer border-b border-gray-700">Grenerate Report</li>
           <li className="px-4 py-2 hover:bg-gray-700 hover:text-white cursor-pointer">Include Header Preview</li>
@@ -105,7 +104,7 @@ const Navbar = () => {
         onMouseLeave={()=>setOpen4(false)}
         >Generate View
         {open4 && (
-          <ul className="absolute left-0 mt-2 bg-gray-800 shadow-xl rounded-lg w-35 py-2 animate-fadeIn border border-gray-700">
+          <ul className="absolute left-0 mt-0 bg-gray-800 shadow-xl rounded-lg w-35 py-2 animate-fadeIn border border-gray-700">
           <li className="px-4 py-2 hover:bg-gray-700 hover:text-white cursor-pointer border-b border-gray-700">Hierarchy View</li>
           </ul>
         )}</li>
@@ -115,7 +114,7 @@ const Navbar = () => {
         onMouseLeave={()=>setOpen5(false)}
         >Help
         {open5 && (
-          <ul className="absolute left-0 mt-2 bg-gray-800 shadow-xl rounded-lg w-35 py-2 animate-fadeIn border border-gray-700">
+          <ul className="absolute left-0 mt-0 bg-gray-800 shadow-xl rounded-lg w-35 py-2 animate-fadeIn border border-gray-700">
           <li className="px-4 py-2 hover:bg-gray-700 hover:text-white cursor-pointer border-b border-gray-700">Documentation</li>
           <li className="px-4 py-2 hover:bg-gray-700 hover:text-white cursor-pointer">About</li>
           </ul>
