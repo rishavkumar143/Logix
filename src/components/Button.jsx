@@ -3,9 +3,9 @@ import CodeEditor from "../components/CodeEditor"
 const Button = () => {
     return(
       <>
-    <div className="min-h-screen bg-sky-100">
-      <div className="flex space-x-4 px-3 py-3">
-        <button
+    <div className="bg-sky-100 flex flex-col">
+      <div className="flex space-x-4 px-3  items-center h-11 bg-sky-100 shadow-sm">
+<button
   className="
     bg-gray-900
     text-amber-50
