@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./App.css";
 import Navbar from "./components/Icons";
 import Button from "./components/Button";
@@ -9,25 +9,42 @@ function App() {
     localStorage.getItem("editorContent") || ""
   );
 
+  const [fileName, setFileName] = useState(
+    localStorage.getItem("fileName") || ""  
+  );
+
+  useEffect(() => {
+    localStorage.setItem("fileName", fileName);
+  }, [fileName]);
+
   return (
     <div className="flex flex-col h-screen overflow-hidden">
 
-      {/* ⭐ Navbar (top fixed) */}
       <Navbar />
 
-      {/* ⭐ Toolbar Buttons */}
       <Button
         editorContent={editorContent}
         setEditorContent={setEditorContent}
+        fileName={fileName}
+        setFileName={setFileName}
       />
 
-      {/* ⭐ Code Editor (only when content exists) */}
+      {editorContent.trim() === "" && (
+        <div className="flex-1 bg-[url('/bg.png')] bg-cover bg-center">
+          <div className="text-white text-xl p-6">
+            Open a file to start editing...
+          </div>
+        </div>
+      )}
+
       {editorContent.trim() !== "" && (
         <CodeEditor
           editorContent={editorContent}
           setEditorContent={setEditorContent}
+          fileName={fileName}
         />
       )}
+
     </div>
   );
 }
