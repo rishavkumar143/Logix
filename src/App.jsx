@@ -1,17 +1,34 @@
-import React from "react";
+import React, { useState } from "react";
 import "./App.css";
-import Icons from "./components/Icons";
+import Navbar from "./components/Icons";
+import Button from "./components/Button";
 import CodeEditor from "./components/CodeEditor";
-import { Route, Routes } from "react-router-dom";
 
 function App() {
+  const [editorContent, setEditorContent] = useState(
+    localStorage.getItem("editorContent") || ""
+  );
+
   return (
-    <>
-      <Routes>
-        <Route path="/" element={<Icons />} />
-        
-      </Routes>
-    </>
+    <div className="flex flex-col h-screen overflow-hidden">
+
+      {/* ⭐ Navbar (top fixed) */}
+      <Navbar />
+
+      {/* ⭐ Toolbar Buttons */}
+      <Button
+        editorContent={editorContent}
+        setEditorContent={setEditorContent}
+      />
+
+      {/* ⭐ Code Editor (only when content exists) */}
+      {editorContent.trim() !== "" && (
+        <CodeEditor
+          editorContent={editorContent}
+          setEditorContent={setEditorContent}
+        />
+      )}
+    </div>
   );
 }
 

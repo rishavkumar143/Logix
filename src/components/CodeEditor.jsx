@@ -1,74 +1,24 @@
 import React from "react";
+import Editor from "@monaco-editor/react";
 
-const code = `
-function hello() {
-  console.log("Hello World");
-}
-
-const add = (a, b) => {
-  return a + b;
-}
-
-export default hello;
-function hello() {
-  console.log("Hello World");
-}
-
-const add = (a, b) => {
-  return a + b;
-}
-
-export default hello;
-function hello() {
-  console.log("Hello World");
-}
-
-const add = (a, b) => {
-  return a + b;
-}
-
-export default hello;
-  console.log("Hello World");
-}
-
-const add = (a, b) => {
-  return a + b;
-}
-
-export default hello;
-function hello() {
-  console.log("Hello World");
-}
-
-const add = (a, b) => {
-  return a + b;
-}
-
-export default hello;
-function hello() {
-  console.log("Hello World");
-}
-
-const add = (a, b) => {
-  return a + b;
-}
-
-export default hello;
-`;
-
-const CodeEditor = () => {
-  const lines = code.split("\n");
-
+const CodeEditor = ({ editorContent, setEditorContent }) => {
   return (
-    <div className="w-full bg-[#1B1B1B] text-gray-200 p-1 h-screen border border-gray-700">
-      <div className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-slate-800 flex text-sm font-mono">
-        <div className="pr-4 text-[#569CD6] bg-slate-800/40 select-none text-right border-r border-slate-700">
-          {lines.map((_, i) => (
-            <div key={i}>{i + 1}</div>
-          ))}
-        </div>
-        <pre className="whitespace-pre px-3">{code}</pre>
-      </div>
+    <div className="w-full flex-1 bg-[#1B1B1B]">
+      <Editor
+        height="100%"
+        defaultLanguage="verilog"
+        theme="vs-dark"
+        value={editorContent}
+        onChange={(value) => setEditorContent(value)}
+        options={{
+          fontSize: 14,
+          automaticLayout: true,
+          scrollBeyondLastLine: false,
+          lineNumbersMinChars: 3,
+          minimap: { enabled: false },
+          wordWrap: "on",
+        }}
+      />
     </div>
   );
 };

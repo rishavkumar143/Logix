@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { FaCaretRight } from "react-icons/fa";
-import Button from "./Button";
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
@@ -13,39 +12,39 @@ const Navbar = () => {
   const font = "text-[clamp(12px,1.2vw,15px)]";
 
   return (
-    <>
-      <nav className="bg-white text-black px-3 select-none shadow-lg w-screen">
-        <ul className={`flex gap-7 ${font}`}>
-          <li
-            className="relative hover:text-blue-400 cursor-pointer transition"
-            onMouseEnter={() => setOpen(true)}
-            onMouseLeave={() => setOpen(false)}
-          >
-            File
-            {open && (
-              <ul className={`absolute left-0 mt-0 bg-gray-800 shadow-xl rounded-lg w-50 py-2 animate-fadeIn border border-gray-1000 ${font}`}>
-                <li className="flex space-x-19 px-4 py-2 hover:bg-gray-700 hover:text-white cursor-pointer">
-                  <span>New</span>
-                  <span>Ctrl+N</span>
-                </li>
+    <nav className="bg-white text-black px-3 select-none shadow-lg w-full h-11 flex items-center sticky top-0 z-50">
 
-                <li className="flex space-x-11 px-4 py-2 hover:bg-gray-700 hover:text-white cursor-pointer">
-                  <span>Open File</span>
-                  <span>Ctrl+O</span>
-                </li>
+      <ul className={`flex gap-7 ${font}`}>
+        
+        <li
+          className="relative hover:text-blue-400 cursor-pointer transition"
+          onMouseEnter={() => setOpen(true)}
+          onMouseLeave={() => setOpen(false)}
+        >
+          File
+          {open && (
+            <ul className={`absolute left-0 mt-0 bg-gray-800 shadow-xl rounded-lg w-50 py-2 animate-fadeIn border border-gray-1000 ${font}`}>
+              <li className="flex space-x-19 px-4 py-2 hover:bg-gray-700 hover:text-white cursor-pointer">
+                <span>New</span>
+                <span>Ctrl+N</span>
+              </li>
 
-                <li className="flex space-x-14 px-4 py-2 hover:bg-gray-700 hover:text-white cursor-pointer border-b border-gray-700">
-                  <span>Open Recent</span>
-                  <span className="mt-1"><FaCaretRight /></span>
-                </li>
+              <li className="flex space-x-11 px-4 py-2 hover:bg-gray-700 hover:text-white cursor-pointer">
+                <span>Open File</span>
+                <span>Ctrl+O</span>
+              </li>
 
-                <li className="px-4 py-2 hover:bg-gray-700 hover:text-white cursor-pointer border-b border-gray-700">Open Project Folder</li>
-                <li className="px-4 py-2 hover:bg-gray-700 hover:text-white cursor-pointer">Exit</li>
-              </ul>
-            )}
-          </li>
+              <li className="flex space-x-14 px-4 py-2 hover:bg-gray-700 hover:text-white cursor-pointer border-b border-gray-700">
+                <span>Open Recent</span>
+                <span className="mt-1"><FaCaretRight /></span>
+              </li>
 
-          <li
+              <li className="px-4 py-2 hover:bg-gray-700 hover:text-white cursor-pointer border-b border-gray-700">Open Project Folder</li>
+              <li className="px-4 py-2 hover:bg-gray-700 hover:text-white cursor-pointer">Exit</li>
+            </ul>
+          )}
+        </li>
+        <li
             className="relative hover:text-blue-400 cursor-pointer transition"
             onMouseEnter={() => setOpen1(true)}
             onMouseLeave={() => setOpen1(false)}
@@ -72,7 +71,6 @@ const Navbar = () => {
               </ul>
             )}
           </li>
-
           <li
             className="relative hover:text-blue-400 cursor-pointer transition"
             onMouseEnter={() => setOpen2(true)}
@@ -100,7 +98,6 @@ const Navbar = () => {
               </ul>
             )}
           </li>
-
           <li
             className="relative hover:text-blue-400 cursor-pointer transition"
             onMouseEnter={() => setOpen3(true)}
@@ -123,7 +120,6 @@ const Navbar = () => {
               </ul>
             )}
           </li>
-
           <li
             className="relative hover:text-blue-400 cursor-pointer transition"
             onMouseEnter={() => setOpen4(true)}
@@ -138,8 +134,7 @@ const Navbar = () => {
               </ul>
             )}
           </li>
-
-          <li
+            <li
             className="relative hover:text-blue-400 cursor-pointer transition"
             onMouseEnter={() => setOpen5(true)}
             onMouseLeave={() => setOpen5(false)}
@@ -157,12 +152,8 @@ const Navbar = () => {
               </ul>
             )}
           </li>
-
-        </ul>
-      </nav>
-
-      <Button />
-    </>
+      </ul>
+    </nav>
   );
 };
 
