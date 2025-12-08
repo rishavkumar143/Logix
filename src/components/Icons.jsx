@@ -12,7 +12,7 @@ const Navbar = () => {
   const font = "text-[clamp(12px,1.2vw,15px)]";
 
   return (
-    <nav className="bg-white text-black px-3 select-none shadow-lg w-full h-11 flex items-center sticky top-0 z-50">
+    <nav className="bg-white text-black px-3 select-none shadow-lg w-full h-6 flex items-center sticky top-0 z-50">
 
       <ul className={`flex gap-7 ${font}`}>
         
