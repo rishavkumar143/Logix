@@ -1,51 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import "./App.css";
-import Navbar from "./components/Icons";
-import Button from "./components/Button";
-import CodeEditor from "./components/CodeEditor";
+import Icons from './components/Icons'
+import Code from "./components/Code";
+
+
+import { Route, Routes } from "react-router-dom";
 
 function App() {
-  const [editorContent, setEditorContent] = useState(
-    localStorage.getItem("editorContent") || ""
-  );
-
-  const [fileName, setFileName] = useState(
-    localStorage.getItem("fileName") || ""  
-  );
-
-  useEffect(() => {
-    localStorage.setItem("fileName", fileName);
-  }, [fileName]);
-
   return (
-    <div className="flex flex-col h-screen overflow-hidden">
-
-      <Navbar />
-
-      <Button
-        editorContent={editorContent}
-        setEditorContent={setEditorContent}
-        fileName={fileName}
-        setFileName={setFileName}
-      />
-
-      {editorContent.trim() === "" && (
-        <div className="flex-1 bg-[url('/bg.png')] bg-cover bg-center">
-          <div className="text-white text-xl p-6">
-            Open a file to start editing...
-          </div>
-        </div>
-      )}
-
-      {editorContent.trim() !== "" && (
-        <CodeEditor
-          editorContent={editorContent}
-          setEditorContent={setEditorContent}
-          fileName={fileName}
-        />
-      )}
-
-    </div>
+    <>
+      <Routes>
+        <Route path="/" element={<Code />} />        
+      </Routes>
+    </>
   );
 }
 

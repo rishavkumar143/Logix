@@ -71,7 +71,7 @@ const Button = ({ editorContent, setEditorContent, fileName, setFileName }) => {
                 }
               }}
               className="bg-gray-900 text-amber-50 h-7 px-4 rounded-3xl text-xs 
-                         transition-all hover:bg-orange-600 cursor-pointer"
+              transition-all hover:bg-orange-600 cursor-pointer"
             >
               {label}
             </button>
@@ -92,7 +92,7 @@ const Button = ({ editorContent, setEditorContent, fileName, setFileName }) => {
         <div
           ref={menuRef}
           className="absolute mt-12 ml-3 z-50 md:hidden bg-gray-900 rounded-xl 
-                       p-3 space-y-2 shadow-xl"
+         p-3 space-y-2 shadow-xl"
         >
           {[
             "Load File",
@@ -114,8 +114,8 @@ const Button = ({ editorContent, setEditorContent, fileName, setFileName }) => {
                 setOpenMenu(false);
               }}
               className="bg-gray-700 text-amber-50 w-40 h-8 rounded-2xl text-xs
-                           flex items-center justify-center truncate
-                           hover:bg-orange-600 transition duration-200 cursor-pointer"
+              flex items-center justify-center truncate
+              hover:bg-orange-600 transition duration-200 cursor-pointer"
             >
               {label}
             </button>
