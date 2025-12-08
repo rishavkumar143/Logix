@@ -4,12 +4,11 @@ import Button from "./Button";
 import CodeEditor from "./CodeEditor";
 
 function Code() {
-  const [editorContent, setEditorContent] = useState(
-    localStorage.getItem("editorContent") || ""
-  );
+
+  const [editorContent, setEditorContent] = useState("");
 
   const [fileName, setFileName] = useState(
-    localStorage.getItem("fileName") || ""  
+    localStorage.getItem("fileName") || ""
   );
 
   useEffect(() => {

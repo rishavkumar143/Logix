@@ -1,6 +1,5 @@
 import React from "react";
 import "./App.css";
-import Icons from './components/Icons'
 import Code from "./components/Code";
 
 
