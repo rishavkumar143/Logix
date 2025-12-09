@@ -16,17 +16,14 @@ const Button = ({
   const [openMenu, setOpenMenu] = useState(false);
   const menuRef = useRef(null);
 
-  // Save editor content
   useEffect(() => {
     localStorage.setItem("editorContent", editorContent);
   }, [editorContent]);
 
-  // Save active filename
   useEffect(() => {
     localStorage.setItem("fileName", fileName);
   }, [fileName]);
 
-  // Save project files
   useEffect(() => {
     if (projectFiles.length > 0) {
       const formatted = projectFiles.map((f) => ({
@@ -38,14 +35,12 @@ const Button = ({
     }
   }, [projectFiles]);
 
-  // Save active file index
   useEffect(() => {
     if (activeFile !== null) {
       localStorage.setItem("activeFile", activeFile.toString());
     }
   }, [activeFile]);
 
-  // Open single file
   const handleUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -65,7 +60,6 @@ const Button = ({
       const cleaned = reader.result.replace(/\n+$/, "");
       setEditorContent(cleaned);
 
-      // Clear previous project
       setProjectFiles([]);
       localStorage.removeItem("projectFiles");
       setActiveFile(null);
@@ -73,7 +67,6 @@ const Button = ({
     reader.readAsText(file);
   };
 
-  // Load project folder
   const handleFolderUpload = async (e) => {
     const files = Array.from(e.target.files);
     let verilog = [];
@@ -100,7 +93,6 @@ const Button = ({
     setEditorContent(verilog[0].content);
   };
 
-  // Clear All
   const clearAll = () => {
     setEditorContent("");
     setFileName("");
@@ -113,7 +105,6 @@ const Button = ({
     localStorage.removeItem("activeFile");
   };
 
-  // Close mobile menu on outside click
   useEffect(() => {
     const handler = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -126,13 +117,10 @@ const Button = ({
 
   return (
     <>
-      {/* HEADER BAR */}
       <div className="relative bg-gray-800 h-11 flex justify-between items-center px-3 shadow-md w-full">
 
-        {/* Desktop Buttons */}
         <div className="space-x-4 hidden md:flex">
 
-          {/* Load File */}
           <button
             onClick={() => fileInputRef.current.click()}
             className="bg-gray-900 text-amber-50 h-7 px-4 rounded-3xl text-xs 
@@ -141,7 +129,6 @@ const Button = ({
             Load File
           </button>
 
-          {/* Load Project */}
           <button
             onClick={() => folderInputRef.current.click()}
             className="bg-gray-900 text-amber-50 h-7 px-4 rounded-3xl text-xs 
@@ -150,19 +137,16 @@ const Button = ({
             Load Project
           </button>
 
-          {/* Explain Code */}
           <button className="bg-gray-900 text-amber-50 h-7 px-4 rounded-3xl text-xs 
           transition-all hover:bg-orange-600 cursor-pointer">
             Explain Code
           </button>
 
-          {/* Copy Explanation */}
           <button className="bg-gray-900 text-amber-50 h-7 px-4 rounded-3xl text-xs 
           transition-all hover:bg-orange-600 cursor-pointer">
             Copy Explanation
           </button>
 
-          {/* Clear All */}
           <button
             onClick={clearAll}
             className="bg-gray-900 text-amber-50 h-7 px-4 rounded-3xl text-xs 
@@ -172,7 +156,6 @@ const Button = ({
           </button>
         </div>
 
-        {/* Mobile Hamburger Icon */}
         <button
           className="md:hidden flex flex-col space-y-[3px] cursor-pointer"
           onClick={() => setOpenMenu(!openMenu)}
@@ -183,7 +166,6 @@ const Button = ({
         </button>
       </div>
 
-      {/* Mobile Menu */}
       {openMenu && (
         <div
           ref={menuRef}
@@ -235,7 +217,6 @@ const Button = ({
         </div>
       )}
 
-      {/* Hidden Inputs */}
       <input
         type="file"
         ref={fileInputRef}

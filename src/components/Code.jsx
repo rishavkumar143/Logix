@@ -5,23 +5,18 @@ import CodeEditor from "./CodeEditor";
 
 function Code() {
 
-  // Editor content
   const [editorContent, setEditorContent] = useState(
     localStorage.getItem("editorContent") || ""
   );
 
-  // File name
   const [fileName, setFileName] = useState(
     localStorage.getItem("fileName") || ""
   );
 
-  // Project files: [{ name, path, content }]
   const [projectFiles, setProjectFiles] = useState([]);
 
-  // Active opened file index
   const [activeFile, setActiveFile] = useState(null);
 
-  // Restore project files on load
   useEffect(() => {
     const saved = localStorage.getItem("projectFiles");
     if (saved) {
@@ -40,7 +35,6 @@ function Code() {
       const index = parseInt(savedActive, 10);
       setActiveFile(index);
 
-      // Restore last file opened
       const savedProj = localStorage.getItem("projectFiles");
       if (savedProj) {
         const arr = JSON.parse(savedProj);
@@ -68,11 +62,13 @@ function Code() {
         setActiveFile={setActiveFile}
       />
 
-      {/* CodeEditor ALWAYS visible */}
       <CodeEditor
         editorContent={editorContent}
         setEditorContent={setEditorContent}
+
         fileName={fileName}
+        setFileName={setFileName} 
+
         projectFiles={projectFiles}
         activeFile={activeFile}
         setActiveFile={setActiveFile}
