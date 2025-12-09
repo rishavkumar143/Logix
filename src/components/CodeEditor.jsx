@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Editor from "@monaco-editor/react";
 
 const CodeEditor = ({
@@ -6,12 +6,28 @@ const CodeEditor = ({
   setEditorContent,
 
   fileName,
-  setFileName,     
+  setFileName,
 
   projectFiles,
   activeFile,
   setActiveFile
 }) => {
+
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  const dropdownRef = useRef(null);  
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
 
   const displayName = fileName?.trim() !== "" ? fileName : "";
 
@@ -35,6 +51,7 @@ const CodeEditor = ({
     localStorage.setItem(explanationKey, explanation);
   }, [explanation, explanationKey]);
 
+
   const handleFileSwitch = (path) => {
     const selected = projectFiles.find(f => f.webkitRelativePath === path);
     if (!selected) return;
@@ -43,13 +60,12 @@ const CodeEditor = ({
     setActiveFile(index);
 
     setEditorContent(selected.content);
-
     setFileName(selected.name);
     localStorage.setItem("fileName", selected.name);
 
     setExplanation(localStorage.getItem(`explanation-${selected.name}`) || "");
 
-    window.dispatchEvent(new Event("storage"));
+    setShowDropdown(false);
   };
 
 
@@ -77,7 +93,7 @@ const CodeEditor = ({
 
         <button
           onClick={() => setActiveTab("explanation")}
-          className={`px-4 py-2 font-semibold cursor-pointer  ${
+          className={`px-4 py-2 font-semibold cursor-pointer ${
             activeTab === "explanation"
               ? "text-white border border-blue-400 "
               : "text-gray-400"
@@ -92,28 +108,45 @@ const CodeEditor = ({
 
       {projectFiles.length > 0 && (
         <div className="w-full bg-[#111] border-b border-gray-700 px-3 py-2">
-          <select
-            className="bg-[#222] text-gray-300 text-sm px-3 py-2 rounded-md border 
-                       border-gray-700 cursor-pointer hover:border-blue-400 
-                       hover:text-blue-400 w-64"
-            value={projectFiles[activeFile]?.webkitRelativePath || ""}
-            onChange={(e) => handleFileSwitch(e.target.value)}
-          >
-            {projectFiles.map((file, index) => (
-              <option
-                key={index}
-                value={file.webkitRelativePath}
-                title={file.webkitRelativePath}
+
+          <div className="relative w-64" ref={dropdownRef}> 
+
+            <button
+              onClick={() => setShowDropdown(!showDropdown)}
+              className="w-full bg-[#1E1E1E] text-white text-sm px-3 py-2 rounded-md 
+                         border-2 border-white hover:border-blue-400 hover:text-blue-400
+                         text-left shadow-md"
+            >
+              {projectFiles[activeFile]?.name || "Select file"}
+            </button>
+
+            {showDropdown && (
+              <div
+                className="absolute mt-1 w-full bg-gray-800 border border-blue-400
+                           rounded-md shadow-lg z-50 py-1 
+                           overflow-hidden select-none"
               >
-                {file.name}
-              </option>
-            ))}
-          </select>
+                {projectFiles.map((file, index) => (
+                  <div
+                    key={index}
+                    onClick={() => handleFileSwitch(file.webkitRelativePath)}
+                    className="px-3 py-2 text-blue-400 cursor-pointer text-sm 
+                               hover:bg-gray-600 hover:text-white transition-all"
+                    title={file.webkitRelativePath}
+                  >
+                    {file.name}
+                  </div>
+                ))}
+
+              </div>
+            )}
+
+          </div>
+
         </div>
       )}
 
       <div className="flex-1 overflow-auto relative">
-
         {activeTab === "code" && (
           <Editor
             height="100%"
