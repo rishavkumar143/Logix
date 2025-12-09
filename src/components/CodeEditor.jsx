@@ -147,7 +147,7 @@ const CodeEditor = ({
               automaticLayout: true,
               scrollBeyondLastLine: false,
               lineNumbersMinChars: 3,
-              minimap: { enabled: false },
+              minimap: { enabled: true },
               wordWrap: "on",
               // readOnly: true,
               readOnly: false,

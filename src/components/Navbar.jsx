@@ -1,5 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FaCaretRight } from "react-icons/fa";
+import {
+  VscFolderOpened,
+  VscFolderLibrary,
+  VscFile,
+  VscTrash,
+  VscCopy,
+  VscCircuitBoard,
+} from "react-icons/vsc";
 
 const Navbar = ({
   editorContent,
@@ -11,58 +19,62 @@ const Navbar = ({
   activeFile,
   setActiveFile,
 }) => {
-  const [menu, setMenu] = useState({
-    file: false,
-    edit: false,
-    view: false,
-    generate: false,
-    genView: false,
-    help: false,
-    recent: false,
-  });
+  const [menu, setMenu] = useState({ open: null, recent: false });
+
+  const fileInputRef = useRef(null);
+  const folderInputRef = useRef(null);
+  const menuRef = useRef(null);
 
   const [zoom, setZoom] = useState(100);
   const [recentFiles, setRecentFiles] = useState(
     JSON.parse(localStorage.getItem("recentFiles")) || []
   );
 
-  const fileInputRef = useRef(null);
-  const folderInputRef = useRef(null);
-  const menuRef = useRef(null);
+  /** -------------------- Helpers ---------------------- */
 
-  // ---------------- SAVE RECENT ----------------
   const saveToRecent = (name, content) => {
     const updated = [
       { name, content },
       ...recentFiles.filter((f) => f.name !== name),
-    ].slice(0, 5);
+    ].slice(0, 6);
+
     setRecentFiles(updated);
     localStorage.setItem("recentFiles", JSON.stringify(updated));
   };
 
-  // ---------------- NEW FILE ----------------
+  const toggleMenu = (key) => {
+    setMenu((prev) => ({
+      ...prev,
+      open: prev.open === key ? null : key,
+      recent: false,
+    }));
+  };
+
+  const resetUI = () => setMenu({ open: null, recent: false });
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (!menuRef.current?.contains(e.target)) resetUI();
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  /** -------------------- File Actions ---------------------- */
+
   const handleNewFile = () => {
     setEditorContent("");
     setFileName("untitled.sv");
     saveToRecent("untitled.sv", "");
+    resetUI();
   };
 
-  // ---------------- EXIT ----------------
-  const handleExit = () => {
-    localStorage.clear();
-    setActiveFile(null);
-    setEditorContent("");
-    setProjectFiles([]);
-    setFileName("");
-  };
-
-  // ---------------- FILE UPLOAD ----------------
   const handleUploadFile = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const ext = file.name.slice(file.name.lastIndexOf(".")).toLowerCase();
-    if (![".v", ".sv"].includes(ext)) return alert("⚠ Only .v or .sv allowed!");
+    const ext = file.name.split(".").pop().toLowerCase();
+    if (!["v", "sv"].includes(ext)) return alert("⚠ Only .v or .sv allowed!");
 
     const reader = new FileReader();
     reader.onload = () => {
@@ -73,257 +85,287 @@ const Navbar = ({
       setActiveFile(null);
     };
     reader.readAsText(file);
+
+    resetUI();
   };
 
-  // ---------------- FOLDER UPLOAD ----------------
   const handleFolderUpload = async (e) => {
     const files = [...e.target.files];
 
     const filtered = await Promise.all(
       files
-        .filter((f) => f.name.endsWith(".v") || f.name.endsWith(".sv"))
-        .map(async (f) => ({
-          name: f.name,
-          content: await f.text(),
-        }))
+        .filter((f) => f.name.match(/\.(v|sv)$/))
+        .map(async (f) => ({ name: f.name, content: await f.text() }))
     );
 
-    if (!filtered.length) return alert("No Verilog files found!");
+    if (!filtered.length) return alert("⚠ No Verilog files found!");
 
     setProjectFiles(filtered);
     setActiveFile(0);
     setFileName(filtered[0].name);
     setEditorContent(filtered[0].content);
     saveToRecent(filtered[0].name, filtered[0].content);
+
+    resetUI();
   };
 
-
-  // ---------------- CLEAR ALL ----------------
   const clearAll = () => {
+    localStorage.clear();
     setEditorContent("");
     setFileName("");
     setProjectFiles([]);
     setActiveFile(null);
-    localStorage.clear();
+    resetUI();
   };
 
-  // ---------------- ZOOM ----------------
+  const handleExit = () => clearAll();
+
+  /** -------------------- Zoom ---------------------- */
   const handleZoom = (amount) => {
     const newZoom = Math.min(200, Math.max(50, zoom + amount));
     setZoom(newZoom);
+
     document
       .querySelector(".monaco-editor")
       ?.style.setProperty("transform", `scale(${newZoom / 100})`);
   };
 
-  // ---------------- SHORTCUT HANDLER ----------------
-  useEffect(() => {
-    const shortcut = (e) => {
-      if (e.ctrlKey && e.key === "o") fileInputRef.current.click();
-      if (e.ctrlKey && e.key === "n") handleNewFile();
-      if (e.ctrlKey && e.key === "=") handleZoom(+10);
-      if (e.ctrlKey && e.key === "-") handleZoom(-10);
-      if (e.ctrlKey && e.key === "0") handleZoom(0);
-    };
-    window.addEventListener("keydown", shortcut);
-    return () => window.removeEventListener("keydown", shortcut);
-  });
-
-  const dropdownBase =
-    "absolute top-6 left-0 bg-[#F5F5F5] text-black shadow-xl border border-gray-400 w-60 py-1 text-sm z-[999]";
+  /** -------------------- UI Classes ---------------------- */
 
   const rowStyle =
-    "flex justify-between px-4 py-[6px] hover:bg-blue-600 hover:text-white cursor-pointer select-none";
-
-  const divider = "border-b border-gray-300 my-1";
+    "flex justify-between px-3 py-[6px] text-[13px] hover:bg-[#0078d4] hover:text-white cursor-pointer";
 
   return (
     <>
-      <nav className="bg-white text-black px-2 h-6 flex items-center gap-6 border-b border-gray-400 text-sm select-none">
-        {[
-          { label: "File", key: "file" },
-          { label: "Edit", key: "edit" },
-          { label: "View", key: "view" },
-          { label: "Generate", key: "generate" },
-          { label: "Generate View", key: "genView" },
-          { label: "Help", key: "help" },
-        ].map((item) => (
-          <div
-            key={item.key}
-            className="relative"
-            onMouseEnter={() =>
-              setMenu((prev) => ({ ...prev, [item.key]: true }))
-            }
-            onMouseLeave={() =>
-              setMenu((prev) => ({ ...prev, [item.key]: false }))
-            }
-          >
-            <span className="cursor-pointer hover:text-blue-600">
-              {item.label}
-            </span>
+      {/* ==================== MENU BAR ==================== */}
+      <nav
+        ref={menuRef}
+        className="bg-white border-b border-gray-300 h-7 flex items-center px-3 gap-5 text-[13px] select-none"
+      >
+        {["File", "Edit", "View", "Generate", "Generate View", "Help"].map(
+          (label) => {
+            const key = label.toLowerCase().replace(" ", "");
 
-            {/* FILE MENU */}
-            {item.key === "file" && menu.file && (
-              <ul className={dropdownBase}>
-                <li className={rowStyle} onClick={handleNewFile}>
-                  <span>New</span>
-                  <span>Ctrl+N</span>
-                </li>
-
-                <li
-                  className={rowStyle}
-                  onClick={() => fileInputRef.current.click()}
+            return (
+              <div key={key} className="relative">
+                {/* Menu Label */}
+                <span
+                  onClick={() => toggleMenu(key)}
+                  className={`px-2 py-0.5 cursor-pointer transition-all
+        ${
+          menu.open === key
+            ? "text-[#0078d4] font-medium border-b-2 border-[#0078d4]"
+            : "hover:text-[#0078d4]"
+        }`}
                 >
-                  <span>Open File</span>
-                  <span>Ctrl+O</span>
-                </li>
+                  {label}
+                </span>
 
-                {/* RECENT */}
-                <li
-                  className={`${rowStyle} flex justify-between`}
-                  onMouseEnter={() =>
-                    setMenu((prev) => ({ ...prev, recent: true }))
-                  }
-                >
-                  <span>Open Recent</span>
-                  <FaCaretRight />
-                </li>
+                {/* --- SHARED DROPDOWN CONTAINER --- */}
+                {menu.open === key && (
+                  <ul
+                    className="absolute left-0 mt-1 bg-[#f9f9f9] shadow-lg border border-gray-300
+          rounded-sm w-60 py-1 text-[13px] z-9999 animate-fadeIn"
+                  >
+                    {/* ================= FILE ================= */}
+                    {key === "file" && (
+                      <>
+                        <li className={rowStyle} onClick={handleNewFile}>
+                          New <span className="opacity-60">Ctrl+N</span>
+                        </li>
 
-                {menu.recent && (
-                  <ul className="absolute left-60 top-24 bg-white text-black border shadow-md w-52">
-                    {recentFiles.map((f, i) => (
-                      <li
-                        key={i}
-                        className={rowStyle}
-                        onClick={() => {
-                          setEditorContent(f.content);
-                          setFileName(f.name);
-                          saveToRecent(f.name, f.content);
-                        }}
-                      >
-                        {f.name}
-                      </li>
-                    ))}
+                        <li
+                          className={rowStyle}
+                          onClick={() => fileInputRef.current.click()}
+                        >
+                          Open File <span className="opacity-60">Ctrl+O</span>
+                        </li>
+
+                        {/* ---- RECENT SUBMENU ---- */}
+                        <li
+                          className={`${rowStyle} relative`}
+                          onMouseEnter={() =>
+                            setMenu((p) => ({ ...p, recent: true }))
+                          }
+                          onMouseLeave={() =>
+                            setMenu((p) => ({ ...p, recent: false }))
+                          }
+                        >
+                          <span>Open Recent</span>
+                          <FaCaretRight />
+
+                          {menu.recent && (
+                            <ul
+                              className="absolute top-0 translate-y-[-2px] left-[100%] 
+      bg-black border border-black-300 shadow-lg rounded-sm 
+      w-[220px] py-1 text-[13px] z-[9999] animate-fadeIn"
+                            >
+                              {recentFiles && recentFiles.length > 0 ? (
+                                recentFiles.map((f, i) => (
+                                  <li
+                                    key={i}
+                                    className="px-3 py-[6px] cursor-pointer hover:bg-[#0078d4] hover:text-white"
+                                    onClick={() => {
+                                      setEditorContent(f.content);
+                                      setFileName(f.name);
+                                      saveToRecent(f.name, f.content);
+                                      setMenu({ open: null, recent: false });
+                                    }}
+                                  >
+                                    {f.name}
+                                  </li>
+                                ))
+                              ) : (
+                                <li className="px-4 py-2 text-gray-500 text-sm">
+                                  No Recent Files
+                                </li>
+                              )}
+                            </ul>
+                          )}
+                        </li>
+
+                        <li className="border-t border-gray-300 my-1"></li>
+
+                        <li
+                          className={rowStyle}
+                          onClick={() => folderInputRef.current.click()}
+                        >
+                          Open Project Folder
+                        </li>
+
+                        <li
+                          className={`${rowStyle} text-red-600 hover:bg-red-600 hover:text-white`}
+                          onClick={handleExit}
+                        >
+                          Exit
+                        </li>
+                      </>
+                    )}
+
+                    {/* ================= EDIT ================= */}
+                    {key === "edit" && (
+                      <>
+                        <li className={rowStyle}>
+                          Undo <span className="opacity-60">Ctrl+Z</span>
+                        </li>
+                        <li className={rowStyle}>
+                          Redo <span className="opacity-60">Ctrl+Y</span>
+                        </li>
+                        <li className={rowStyle}>
+                          Find <span className="opacity-60">Ctrl+F</span>
+                        </li>
+                      </>
+                    )}
+
+                    {/* ================= VIEW ================= */}
+                    {key === "view" && (
+                      <>
+                        <li
+                          className={rowStyle}
+                          onClick={() => handleZoom(+10)}
+                        >
+                          Zoom In <span className="opacity-60">Ctrl++</span>
+                        </li>
+                        <li
+                          className={rowStyle}
+                          onClick={() => handleZoom(-10)}
+                        >
+                          Zoom Out <span className="opacity-60">Ctrl+-</span>
+                        </li>
+                        <li
+                          className={rowStyle}
+                          onClick={() => handleZoom(100 - zoom)}
+                        >
+                          Reset Zoom <span className="opacity-60">Ctrl+0</span>
+                        </li>
+                      </>
+                    )}
+
+                    {/* ================= GENERATE ================= */}
+                    {key === "generate" && (
+                      <>
+                        <li className={rowStyle}>Generate Testbench</li>
+                        <li className={rowStyle}>Generate UVM Testbench</li>
+                        <li className={rowStyle}>Generate Report</li>
+                      </>
+                    )}
+
+                    {/* ================= GENERATE VIEW ================= */}
+                    {key === "generateview" && (
+                      <li className={rowStyle}>Hierarchy View</li>
+                    )}
+
+                    {/* ================= HELP ================= */}
+                    {key === "help" && (
+                      <>
+                        <li className={rowStyle}>Documentation</li>
+                        <li className={rowStyle}>About</li>
+                      </>
+                    )}
                   </ul>
                 )}
-
-                <li className={divider}></li>
-
-                <li
-                  className={rowStyle}
-                  onClick={() => folderInputRef.current.click()}
-                >
-                  Open Project Folder
-                </li>
-
-                <li
-                  className={rowStyle + " text-red-600 hover:text-white"}
-                  onClick={handleExit}
-                >
-                  Exit
-                </li>
-              </ul>
-            )}
-
-            {/* EDIT MENU */}
-            {item.key === "edit" && menu.edit && (
-              <ul className={dropdownBase}>
-                <li className={rowStyle}>
-                  Undo <span>Ctrl+Z</span>
-                </li>
-                <li className={rowStyle}>
-                  Redo <span>Ctrl+Y</span>
-                </li>
-                <li className={rowStyle}>
-                  Find <span>Ctrl+F</span>
-                </li>
-              </ul>
-            )}
-
-            {/* VIEW MENU */}
-            {item.key === "view" && menu.view && (
-              <ul className={dropdownBase}>
-                <li className={rowStyle} onClick={() => handleZoom(+10)}>
-                  Zoom In <span>Ctrl++</span>
-                </li>
-                <li className={rowStyle} onClick={() => handleZoom(-10)}>
-                  Zoom Out <span>Ctrl+-</span>
-                </li>
-                <li className={rowStyle} onClick={() => handleZoom(100 - zoom)}>
-                  Reset Zoom <span>Ctrl+0</span>
-                </li>
-              </ul>
-            )}
-
-            {/* GENERATE MENU */}
-            {item.key === "generate" && menu.generate && (
-              <ul className={dropdownBase}>
-                <li className={rowStyle}>Generate Testbench</li>
-                <li className={rowStyle}>Generate UVM Testbench</li>
-                <li className={rowStyle}>Generate Report</li>
-                <li className={divider}></li>
-                <li className={rowStyle}>Include Header Preview</li>
-              </ul>
-            )}
-
-            {/* GENERATE VIEW */}
-            {item.key === "genView" && menu.genView && (
-              <ul className={dropdownBase}>
-                <li className={rowStyle}>Hierarchy View</li>
-              </ul>
-            )}
-
-            {/* HELP */}
-            {item.key === "help" && menu.help && (
-              <ul className={dropdownBase}>
-                <li className={rowStyle}>Documentation</li>
-                <li className={rowStyle}>About</li>
-              </ul>
-            )}
-          </div>
-        ))}
+              </div>
+            );
+          }
+        )}
       </nav>
 
-      {/* TOOLBAR */}
-      <div className="bg-[#0067A3] w-full h-10 flex items-center gap-3 px-3 text-white font-medium">
-        <button
-          onClick={() => fileInputRef.current.click()}
-          className="px-4 py-1 bg-[#10A9DC] cursor-pointer"
-        >
-          Load File
-        </button>
-        <button
-          onClick={() => folderInputRef.current.click()}
-          className="px-4 py-1 bg-[#10A9DC] cursor-pointer"
-        >
-          Load Project
-        </button>
-        <button className="px-4 py-1 bg-[#10A9DC] cursor-pointer">
-          Explain Code
-        </button>
-        <button className="px-4 py-1 bg-[#10A9DC] cursor-pointer">
-          Copy Explanation
-        </button>
-        <button
-          onClick={clearAll}
-          className="px-4 py-1 bg-[#10A9DC] cursor-pointer"
-        >
-          Clear All
-        </button>
+      {/* ==================== TOOLBAR ==================== */}
+      <div className="w-full h-10 bg-[#1E2A33] border-b border-[#3b4b55] flex items-center px-2 gap-1 select-none">
+        {[
+          {
+            label: "Load File",
+            action: () => fileInputRef.current.click(),
+            icon: <VscFile size={18} />,
+          },
+          {
+            label: "Load Project",
+            action: () => folderInputRef.current.click(),
+            icon: <VscFolderOpened size={18} />,
+          },
+          {
+            label: "Explain Code",
+            action: () => {},
+            icon: <VscCircuitBoard size={18} />,
+          },
+          {
+            label: "Copy Explanation",
+            action: () => {},
+            icon: <VscCopy size={18} />,
+          },
+          {
+            label: "Clear All",
+            action: clearAll,
+            icon: <VscTrash size={18} />,
+          },
+        ].map((btn) => (
+          <button
+            key={btn.label}
+            onClick={btn.action}
+            className="flex items-center gap-2 px-3 py-[6px] text-sm cursor-pointer text-gray-200 rounded hover:bg-[#2A3A45] transition-all"
+          >
+            {btn.icon}
+            {btn.label}
+          </button>
+        ))}
+
+        <div className="w-[1px] h-6 bg-[#3b4b55] mx-2" />
+        <span className="text-xs text-gray-400">Ready</span>
       </div>
 
-      {/* Inputs */}
+      {/* Hidden Inputs */}
       <input
-        type="file"
         ref={fileInputRef}
+        type="file"
         accept=".v,.sv"
         className="hidden"
         onChange={handleUploadFile}
       />
       <input
-        type="file"
         ref={folderInputRef}
+        type="file"
         webkitdirectory="true"
+        directory=""
         className="hidden"
         onChange={handleFolderUpload}
       />
