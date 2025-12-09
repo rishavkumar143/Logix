@@ -149,8 +149,8 @@ const CodeEditor = ({
               lineNumbersMinChars: 3,
               minimap: { enabled: false },
               wordWrap: "on",
-              readOnly: true,
-              // readOnly: false,
+              // readOnly: true,
+              readOnly: false,
               domReadOnly: true,
             }}
           />

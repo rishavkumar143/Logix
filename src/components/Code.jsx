@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import Navbar from "./Icons";
-import Button from "./Button";
+import Navbar from "./Navbar";
 import CodeEditor from "./CodeEditor";
 
 function Code() {
@@ -47,9 +46,7 @@ function Code() {
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
-      <Navbar />
-
-      <Button
+      <Navbar
         editorContent={editorContent}
         setEditorContent={setEditorContent}
         fileName={fileName}

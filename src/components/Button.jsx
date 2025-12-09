@@ -170,7 +170,7 @@ const Button = ({
       {openMenu && (
         <div
           ref={menuRef}
-          className="absolute top-12 left-3 z-[9999] md:hidden bg-gray-900 rounded-xl 
+          className="absolute top-12 left-3 z-9999 md:hidden bg-gray-900 rounded-xl 
           p-3 space-y-2 shadow-xl border border-gray-700"
         >
           <button
