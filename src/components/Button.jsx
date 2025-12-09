@@ -1,42 +1,62 @@
 import React, { useState, useEffect, useRef } from "react";
 
-const Button = ({ editorContent, setEditorContent, fileName, setFileName }) => {
+const Button = ({
+  editorContent,
+  setEditorContent,
+  fileName,
+  setFileName,
+  projectFiles,
+  setProjectFiles,
+  activeFile,
+  setActiveFile
+}) => {
+
   const fileInputRef = useRef(null);
+  const folderInputRef = useRef(null);
   const [openMenu, setOpenMenu] = useState(false);
   const menuRef = useRef(null);
 
+  // Save editor content
   useEffect(() => {
     localStorage.setItem("editorContent", editorContent);
   }, [editorContent]);
 
+  // Save active filename
   useEffect(() => {
-    const handleResize = () => setOpenMenu(false);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+    localStorage.setItem("fileName", fileName);
+  }, [fileName]);
 
+  // Save project files
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
-        setOpenMenu(false);
-      }
-    };
+    if (projectFiles.length > 0) {
+      const formatted = projectFiles.map((f) => ({
+        name: f.name,
+        webkitRelativePath: f.webkitRelativePath,
+        content: f.content
+      }));
+      localStorage.setItem("projectFiles", JSON.stringify(formatted));
+    }
+  }, [projectFiles]);
 
-    if (openMenu) document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [openMenu]);
+  // Save active file index
+  useEffect(() => {
+    if (activeFile !== null) {
+      localStorage.setItem("activeFile", activeFile.toString());
+    }
+  }, [activeFile]);
 
+  // Open single file
   const handleUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    setFileName(file.name); 
+    setFileName(file.name);
 
     const allowed = [".v", ".sv"];
     const ext = file.name.substring(file.name.lastIndexOf(".")).toLowerCase();
 
     if (!allowed.includes(ext)) {
-      alert("Only .v and .sv files allowed!");
+      alert("Only .v or .sv files allowed!");
       return;
     }
 
@@ -44,40 +64,115 @@ const Button = ({ editorContent, setEditorContent, fileName, setFileName }) => {
     reader.onload = () => {
       const cleaned = reader.result.replace(/\n+$/, "");
       setEditorContent(cleaned);
+
+      // Clear previous project
+      setProjectFiles([]);
+      localStorage.removeItem("projectFiles");
+      setActiveFile(null);
     };
     reader.readAsText(file);
   };
 
+  // Load project folder
+  const handleFolderUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    let verilog = [];
+
+    for (const file of files) {
+      if (file.name.endsWith(".v") || file.name.endsWith(".sv")) {
+        const content = await file.text();
+        verilog.push({
+          name: file.name,
+          webkitRelativePath: file.webkitRelativePath,
+          content
+        });
+      }
+    }
+
+    if (verilog.length === 0) {
+      alert("No .v or .sv files found in selected folder.");
+      return;
+    }
+
+    setProjectFiles(verilog);
+    setActiveFile(0);
+    setFileName(verilog[0].name);
+    setEditorContent(verilog[0].content);
+  };
+
+  // Clear All
+  const clearAll = () => {
+    setEditorContent("");
+    setFileName("");
+    setProjectFiles([]);
+    setActiveFile(null);
+
+    localStorage.removeItem("editorContent");
+    localStorage.removeItem("fileName");
+    localStorage.removeItem("projectFiles");
+    localStorage.removeItem("activeFile");
+  };
+
+  // Close mobile menu on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setOpenMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
   return (
     <>
-      <div className="bg-gray-800 h-11 flex justify-between items-center px-3 shadow-md w-full">
+      {/* HEADER BAR */}
+      <div className="relative bg-gray-800 h-11 flex justify-between items-center px-3 shadow-md w-full">
+
+        {/* Desktop Buttons */}
         <div className="space-x-4 hidden md:flex">
-          {[
-            "Load File",
-            "Load Project",
-            "Explain Code",
-            "Copy Explanation",
-            "Clear All",
-          ].map((label, index) => (
-            <button
-              key={index}
-              onClick={() => {
-                if (label === "Load File") fileInputRef.current.click();
-                if (label === "Clear All") {
-                  setEditorContent("");
-                  setFileName("");
-                  localStorage.removeItem("editorContent");
-                  localStorage.removeItem("fileName");
-                }
-              }}
-              className="bg-gray-900 text-amber-50 h-7 px-4 rounded-3xl text-xs 
-              transition-all hover:bg-orange-600 cursor-pointer"
-            >
-              {label}
-            </button>
-          ))}
+
+          {/* Load File */}
+          <button
+            onClick={() => fileInputRef.current.click()}
+            className="bg-gray-900 text-amber-50 h-7 px-4 rounded-3xl text-xs 
+            transition-all hover:bg-orange-600 cursor-pointer"
+          >
+            Load File
+          </button>
+
+          {/* Load Project */}
+          <button
+            onClick={() => folderInputRef.current.click()}
+            className="bg-gray-900 text-amber-50 h-7 px-4 rounded-3xl text-xs 
+            transition-all hover:bg-orange-600 cursor-pointer"
+          >
+            Load Project
+          </button>
+
+          {/* Explain Code */}
+          <button className="bg-gray-900 text-amber-50 h-7 px-4 rounded-3xl text-xs 
+          transition-all hover:bg-orange-600 cursor-pointer">
+            Explain Code
+          </button>
+
+          {/* Copy Explanation */}
+          <button className="bg-gray-900 text-amber-50 h-7 px-4 rounded-3xl text-xs 
+          transition-all hover:bg-orange-600 cursor-pointer">
+            Copy Explanation
+          </button>
+
+          {/* Clear All */}
+          <button
+            onClick={clearAll}
+            className="bg-gray-900 text-amber-50 h-7 px-4 rounded-3xl text-xs 
+            transition-all hover:bg-orange-600 cursor-pointer"
+          >
+            Clear All
+          </button>
         </div>
 
+        {/* Mobile Hamburger Icon */}
         <button
           className="md:hidden flex flex-col space-y-[3px] cursor-pointer"
           onClick={() => setOpenMenu(!openMenu)}
@@ -88,47 +183,74 @@ const Button = ({ editorContent, setEditorContent, fileName, setFileName }) => {
         </button>
       </div>
 
+      {/* Mobile Menu */}
       {openMenu && (
         <div
           ref={menuRef}
-          className="absolute mt-12 ml-3 z-50 md:hidden bg-gray-900 rounded-xl 
-         p-3 space-y-2 shadow-xl"
+          className="absolute top-12 left-3 z-[9999] md:hidden bg-gray-900 rounded-xl 
+          p-3 space-y-2 shadow-xl border border-gray-700"
         >
-          {[
-            "Load File",
-            "Load Project",
-            "Explain Code",
-            "Copy Explanation",
-            "Clear All",
-          ].map((label, index) => (
-            <button
-              key={index}
-              onClick={() => {
-                if (label === "Load File") fileInputRef.current.click();
-                if (label === "Clear All") {
-                  setEditorContent("");
-                  setFileName("");
-                  localStorage.removeItem("editorContent");
-                  localStorage.removeItem("fileName");
-                }
-                setOpenMenu(false);
-              }}
-              className="bg-gray-700 text-amber-50 w-40 h-8 rounded-2xl text-xs
-              flex items-center justify-center truncate
-              hover:bg-orange-600 transition duration-200 cursor-pointer"
-            >
-              {label}
-            </button>
-          ))}
+          <button
+            onClick={() => {
+              fileInputRef.current.click();
+              setOpenMenu(false);
+            }}
+            className="bg-gray-700 text-amber-50 w-40 h-8 rounded-2xl text-xs
+            flex items-center justify-center hover:bg-orange-600 transition cursor-pointer"
+          >
+            Load File
+          </button>
+
+          <button
+            onClick={() => {
+              folderInputRef.current.click();
+              setOpenMenu(false);
+            }}
+            className="bg-gray-700 text-amber-50 w-40 h-8 rounded-2xl text-xs
+            flex items-center justify-center hover:bg-orange-600 transition cursor-pointer"
+          >
+            Load Project
+          </button>
+
+          <button className="bg-gray-700 text-amber-50 w-40 h-8 rounded-2xl text-xs
+          flex items-center justify-center hover:bg-orange-600 transition cursor-pointer">
+            Explain Code
+          </button>
+
+          <button className="bg-gray-700 text-amber-50 w-40 h-8 rounded-2xl text-xs
+          flex items-center justify-center hover:bg-orange-600 transition cursor-pointer">
+            Copy Explanation
+          </button>
+
+          <button
+            onClick={() => {
+              clearAll();
+              setOpenMenu(false);
+            }}
+            className="bg-gray-700 text-amber-50 w-40 h-8 rounded-2xl text-xs
+            flex items-center justify-center hover:bg-orange-600 transition cursor-pointer"
+          >
+            Clear All
+          </button>
         </div>
       )}
 
+      {/* Hidden Inputs */}
       <input
         type="file"
         ref={fileInputRef}
         accept=".v,.sv"
         className="hidden"
         onChange={handleUpload}
+      />
+
+      <input
+        type="file"
+        ref={folderInputRef}
+        webkitdirectory="true"
+        directory=""
+        className="hidden"
+        onChange={handleFolderUpload}
       />
     </>
   );

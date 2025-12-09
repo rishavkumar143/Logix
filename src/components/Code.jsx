@@ -5,15 +5,52 @@ import CodeEditor from "./CodeEditor";
 
 function Code() {
 
-  const [editorContent, setEditorContent] = useState("");
+  // Editor content
+  const [editorContent, setEditorContent] = useState(
+    localStorage.getItem("editorContent") || ""
+  );
 
+  // File name
   const [fileName, setFileName] = useState(
     localStorage.getItem("fileName") || ""
   );
 
+  // Project files: [{ name, path, content }]
+  const [projectFiles, setProjectFiles] = useState([]);
+
+  // Active opened file index
+  const [activeFile, setActiveFile] = useState(null);
+
+  // Restore project files on load
   useEffect(() => {
-    localStorage.setItem("fileName", fileName);
-  }, [fileName]);
+    const saved = localStorage.getItem("projectFiles");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          setProjectFiles(parsed);
+        }
+      } catch (err) {
+        console.error("Error loading project files:", err);
+      }
+    }
+
+    const savedActive = localStorage.getItem("activeFile");
+    if (savedActive !== null) {
+      const index = parseInt(savedActive, 10);
+      setActiveFile(index);
+
+      // Restore last file opened
+      const savedProj = localStorage.getItem("projectFiles");
+      if (savedProj) {
+        const arr = JSON.parse(savedProj);
+        if (arr[index]) {
+          setEditorContent(arr[index].content);
+          setFileName(arr[index].name);
+        }
+      }
+    }
+  }, []);
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
@@ -25,23 +62,21 @@ function Code() {
         setEditorContent={setEditorContent}
         fileName={fileName}
         setFileName={setFileName}
+        projectFiles={projectFiles}
+        setProjectFiles={setProjectFiles}
+        activeFile={activeFile}
+        setActiveFile={setActiveFile}
       />
 
-      {editorContent.trim() === "" && (
-        <div className="flex-1 bg-[url('/bg.png')] bg-cover bg-center">
-          <div className="text-white text-xl p-6">
-            Open a file to start editing...
-          </div>
-        </div>
-      )}
-
-      {editorContent.trim() !== "" && (
-        <CodeEditor
-          editorContent={editorContent}
-          setEditorContent={setEditorContent}
-          fileName={fileName}
-        />
-      )}
+      {/* CodeEditor ALWAYS visible */}
+      <CodeEditor
+        editorContent={editorContent}
+        setEditorContent={setEditorContent}
+        fileName={fileName}
+        projectFiles={projectFiles}
+        activeFile={activeFile}
+        setActiveFile={setActiveFile}
+      />
 
     </div>
   );
