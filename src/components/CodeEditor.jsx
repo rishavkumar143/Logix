@@ -10,12 +10,11 @@ const CodeEditor = ({
 
   projectFiles,
   activeFile,
-  setActiveFile
+  setActiveFile,
 }) => {
-
   const [showDropdown, setShowDropdown] = useState(false);
 
-  const dropdownRef = useRef(null);  
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -27,7 +26,6 @@ const CodeEditor = ({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
 
   const displayName = fileName?.trim() !== "" ? fileName : "";
 
@@ -51,9 +49,8 @@ const CodeEditor = ({
     localStorage.setItem(explanationKey, explanation);
   }, [explanation, explanationKey]);
 
-
   const handleFileSwitch = (path) => {
-    const selected = projectFiles.find(f => f.webkitRelativePath === path);
+    const selected = projectFiles.find((f) => f.webkitRelativePath === path);
     if (!selected) return;
 
     const index = projectFiles.indexOf(selected);
@@ -68,16 +65,11 @@ const CodeEditor = ({
     setShowDropdown(false);
   };
 
-
-  const showPlaceholder =
-    activeTab === "code" && editorContent.trim() === "";
-
+  const showPlaceholder = activeTab === "code" && editorContent.trim() === "";
 
   return (
     <div className="w-full flex-1 flex flex-col bg-[#1B1B1B] border border-amber-50 rounded relative">
-
       <div className="flex items-center border-b border-gray-700 bg-[#111]">
-
         <button
           onClick={() => setActiveTab("code")}
           className={`px-4 py-2 font-semibold cursor-pointer ${
@@ -86,7 +78,8 @@ const CodeEditor = ({
               : "text-gray-400"
           }`}
         >
-          Code {displayName && (
+          Code{" "}
+          {displayName && (
             <span className="text-gray-500 text-sm">({displayName})</span>
           )}
         </button>
@@ -99,18 +92,16 @@ const CodeEditor = ({
               : "text-gray-400"
           }`}
         >
-          Explanation {displayName && (
+          Explanation{" "}
+          {displayName && (
             <span className="text-gray-500 text-sm">({displayName})</span>
           )}
         </button>
-
       </div>
 
       {projectFiles.length > 0 && (
         <div className="w-full bg-[#111] border-b border-gray-700 px-3 py-2">
-
-          <div className="relative w-64" ref={dropdownRef}> 
-
+          <div className="relative w-64" ref={dropdownRef}>
             <button
               onClick={() => setShowDropdown(!showDropdown)}
               className="w-full bg-[#1E1E1E] text-white text-sm px-3 py-2 rounded-md 
@@ -137,12 +128,9 @@ const CodeEditor = ({
                     {file.name}
                   </div>
                 ))}
-
               </div>
             )}
-
           </div>
-
         </div>
       )}
 
@@ -162,6 +150,7 @@ const CodeEditor = ({
               minimap: { enabled: false },
               wordWrap: "on",
               readOnly: true,
+              // readOnly: false,
               domReadOnly: true,
             }}
           />
@@ -186,7 +175,6 @@ const CodeEditor = ({
             }}
           />
         )}
-
       </div>
     </div>
   );

@@ -4,7 +4,6 @@ import Button from "./Button";
 import CodeEditor from "./CodeEditor";
 
 function Code() {
-
   const [editorContent, setEditorContent] = useState(
     localStorage.getItem("editorContent") || ""
   );
@@ -48,7 +47,6 @@ function Code() {
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
-
       <Navbar />
 
       <Button
@@ -65,15 +63,12 @@ function Code() {
       <CodeEditor
         editorContent={editorContent}
         setEditorContent={setEditorContent}
-
         fileName={fileName}
-        setFileName={setFileName} 
-
+        setFileName={setFileName}
         projectFiles={projectFiles}
         activeFile={activeFile}
         setActiveFile={setActiveFile}
       />
-
     </div>
   );
 }

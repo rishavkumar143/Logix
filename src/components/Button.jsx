@@ -8,9 +8,8 @@ const Button = ({
   projectFiles,
   setProjectFiles,
   activeFile,
-  setActiveFile
+  setActiveFile,
 }) => {
-
   const fileInputRef = useRef(null);
   const folderInputRef = useRef(null);
   const [openMenu, setOpenMenu] = useState(false);
@@ -29,7 +28,7 @@ const Button = ({
       const formatted = projectFiles.map((f) => ({
         name: f.name,
         webkitRelativePath: f.webkitRelativePath,
-        content: f.content
+        content: f.content,
       }));
       localStorage.setItem("projectFiles", JSON.stringify(formatted));
     }
@@ -77,7 +76,7 @@ const Button = ({
         verilog.push({
           name: file.name,
           webkitRelativePath: file.webkitRelativePath,
-          content
+          content,
         });
       }
     }
@@ -118,9 +117,7 @@ const Button = ({
   return (
     <>
       <div className="relative bg-gray-800 h-11 flex justify-between items-center px-3 shadow-md w-full">
-
         <div className="space-x-4 hidden md:flex">
-
           <button
             onClick={() => fileInputRef.current.click()}
             className="bg-gray-900 text-amber-50 h-7 px-4 rounded-3xl text-xs 
@@ -137,13 +134,17 @@ const Button = ({
             Load Project
           </button>
 
-          <button className="bg-gray-900 text-amber-50 h-7 px-4 rounded-3xl text-xs 
-          transition-all hover:bg-orange-600 cursor-pointer">
+          <button
+            className="bg-gray-900 text-amber-50 h-7 px-4 rounded-3xl text-xs 
+          transition-all hover:bg-orange-600 cursor-pointer"
+          >
             Explain Code
           </button>
 
-          <button className="bg-gray-900 text-amber-50 h-7 px-4 rounded-3xl text-xs 
-          transition-all hover:bg-orange-600 cursor-pointer">
+          <button
+            className="bg-gray-900 text-amber-50 h-7 px-4 rounded-3xl text-xs 
+          transition-all hover:bg-orange-600 cursor-pointer"
+          >
             Copy Explanation
           </button>
 
@@ -194,13 +195,17 @@ const Button = ({
             Load Project
           </button>
 
-          <button className="bg-gray-700 text-amber-50 w-40 h-8 rounded-2xl text-xs
-          flex items-center justify-center hover:bg-orange-600 transition cursor-pointer">
+          <button
+            className="bg-gray-700 text-amber-50 w-40 h-8 rounded-2xl text-xs
+          flex items-center justify-center hover:bg-orange-600 transition cursor-pointer"
+          >
             Explain Code
           </button>
 
-          <button className="bg-gray-700 text-amber-50 w-40 h-8 rounded-2xl text-xs
-          flex items-center justify-center hover:bg-orange-600 transition cursor-pointer">
+          <button
+            className="bg-gray-700 text-amber-50 w-40 h-8 rounded-2xl text-xs
+          flex items-center justify-center hover:bg-orange-600 transition cursor-pointer"
+          >
             Copy Explanation
           </button>
 
