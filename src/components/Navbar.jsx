@@ -1,22 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FaCaretRight } from "react-icons/fa";
-import {
-  VscFolderOpened,
-  VscFolderLibrary,
-  VscFile,
-  VscTrash,
-  VscCopy,
-  VscCircuitBoard,
-} from "react-icons/vsc";
+import { VscTrash, VscCopy, VscCircuitBoard } from "react-icons/vsc";
 
 const Navbar = ({
-  editorContent,
   setEditorContent,
-  fileName,
   setFileName,
-  projectFiles,
   setProjectFiles,
-  activeFile,
   setActiveFile,
 }) => {
   const [menu, setMenu] = useState({ open: null, recent: false });
@@ -184,7 +173,7 @@ const Navbar = ({
                 {menu.open === key && (
                   <ul
                     className="absolute left-0 mt-1 bg-[#f9f9f9] shadow-lg border border-gray-300
-                    rounded-sm w-60 py-1 text-[13px] z-[9999] animate-fadeIn"
+                    rounded-sm w-60 py-1 text-[13px] z-9999 animate-fadeIn"
                   >
                     {/* ================= FILE ================= */}
                     {key === "file" && (
@@ -222,15 +211,15 @@ const Navbar = ({
 
                           {menu.recent && (
                             <ul
-                              className="absolute top-0 translate-y-[-2px] left-[100%] 
+                              className="absolute top-0 -translate-y-0.5 left-full 
                               bg-black border border-black-300 shadow-lg rounded-sm 
-                              w-[220px] py-1 text-[13px] z-[9999] animate-fadeIn"
+                              w-[220px] py-1 text-[13px] z-9999 animate-fadeIn"
                             >
                               {recentFiles.length > 0 ? (
                                 recentFiles.map((f, i) => (
                                   <li
                                     key={i}
-                                    className="px-3 py-[6px] cursor-pointer hover:bg-[#0078d4] hover:text-white"
+                                    className="px-3 py-1.5 cursor-pointer hover:bg-[#0078d4] hover:text-white"
                                     onClick={() => {
                                       setEditorContent(f.content);
                                       setFileName(f.name);
@@ -332,16 +321,6 @@ const Navbar = ({
       {/* ==================== TOOLBAR ==================== */}
       <div className="w-full h-10 bg-[#1E2A33] border-b border-[#3b4b55] flex items-center px-2 gap-1 select-none">
         {[
-          // {
-          //   label: "Load File",
-          //   action: () => fileInputRef.current.click(),
-          //   icon: <VscFile size={18} />,
-          // },
-          // {
-          //   label: "Load Project",
-          //   action: () => folderInputRef.current.click(),
-          //   icon: <VscFolderOpened size={18} />,
-          // },
           {
             label: "Explain Code",
             action: () => {},
@@ -361,14 +340,14 @@ const Navbar = ({
           <button
             key={btn.label}
             onClick={btn.action}
-            className="flex items-center gap-2 px-3 py-[6px] text-sm cursor-pointer text-gray-200 rounded hover:bg-[#2A3A45] transition-all"
+            className="flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer text-gray-200 rounded hover:bg-[#2A3A45] transition-all"
           >
             {btn.icon}
             {btn.label}
           </button>
         ))}
 
-        <div className="w-[1px] h-6 bg-[#3b4b55] mx-2" />
+        <div className="w-px h-6 bg-[#3b4b55] mx-2" />
         <span className="text-xs text-gray-400">Ready</span>
       </div>
 
