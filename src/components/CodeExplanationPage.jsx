@@ -4,43 +4,70 @@ import Editor from "@monaco-editor/react";
 const CodeExplanationPage = ({
   editorContent,
   setEditorContent,
-
   fileName,
-  setFileName,
-
   projectFiles,
   activeFile,
   setActiveFile,
 }) => {
-  const [showDropdown, setShowDropdown] = useState(false);
+  /* -------------------- TAB STATE -------------------- */
 
-  const dropdownRef = useRef(null);
+  const [openTabs, setOpenTabs] = useState(() => {
+    if (fileName) return [{ name: fileName }];
+    return [];
+  });
 
+  /* Sync openTabs when a new file is selected */
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setShowDropdown(false);
+    if (!fileName) return;
+
+    setOpenTabs((tabs) => {
+      const exists = tabs.find((t) => t.name === fileName);
+      if (exists) return tabs;
+      return [...tabs, { name: fileName }];
+    });
+  }, [fileName]);
+
+  /* -------------------- CLOSE TAB -------------------- */
+  const closeTab = (name) => {
+    setOpenTabs((prev) => {
+      const remaining = prev.filter((t) => t.name !== name);
+
+      if (name === fileName) {
+        const next = remaining[remaining.length - 1];
+        if (next) {
+          const index = projectFiles.findIndex((f) => f.name === next.name);
+          if (index !== -1) {
+            setActiveFile(index);
+            setEditorContent(projectFiles[index].content);
+          }
+        }
       }
-    };
+      return remaining;
+    });
+  };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  const activateTab = (name) => {
+    const index = projectFiles.findIndex((f) => f.name === name);
+    if (index !== -1) {
+      setActiveFile(index);
+      setEditorContent(projectFiles[index].content);
+    }
+  };
 
-  const displayName = fileName?.trim() !== "" ? fileName : "";
+  /* -------------------- OLD STATES (Tabs kept) -------------------- */
 
-  const tabKey = `activeTab-${displayName || "blank"}`;
+  const displayName = fileName?.trim() !== "" ? fileName : "blank";
 
-  const [activeTab, setActiveTab] = useState(
+  const tabKey = `activeTab-${displayName}`;
+  const [activeTabView, setActiveTabView] = useState(
     localStorage.getItem(tabKey) || "code"
   );
 
   useEffect(() => {
-    localStorage.setItem(tabKey, activeTab);
-  }, [activeTab, tabKey]);
+    localStorage.setItem(tabKey, activeTabView);
+  }, [activeTabView, tabKey]);
 
-  const explanationKey = `explanation-${displayName || "blank"}`;
-
+  const explanationKey = `explanation-${displayName}`;
   const [explanation, setExplanation] = useState(
     localStorage.getItem(explanationKey) || ""
   );
@@ -49,132 +76,99 @@ const CodeExplanationPage = ({
     localStorage.setItem(explanationKey, explanation);
   }, [explanation, explanationKey]);
 
-  const handleFileSwitch = (index) => {
-    const selected = projectFiles[index];
-    if (!selected) return;
-
-    setActiveFile(index);
-    setEditorContent(selected.content);
-    setFileName(selected.name);
-
-    localStorage.setItem("activeFile", index.toString());
-    setExplanation(localStorage.getItem(`explanation-${selected.name}`) || "");
-
-    setShowDropdown(false);
-  };
-
-  const showPlaceholder = activeTab === "code" && editorContent.trim() === "";
+  /* -------------------- UI SECTION -------------------- */
 
   return (
-    <div className="w-full flex-1 flex flex-col bg-[#1B1B1B] border border-amber-50 rounded relative">
+    <div className="w-full flex-1 flex flex-col bg-[#1B1B1B]">
+
+      {/* -------------------- FILE TABS -------------------- */}
+      <div className="flex items-center bg-[#111] border-b border-gray-800 px-2 select-none">
+
+        {openTabs.map((tab, i) => (
+          <div
+            key={i}
+            className={`flex items-center gap-2 px-4 py-2 text-sm cursor-pointer border-r border-gray-700 
+              ${
+                tab.name === fileName
+                  ? "bg-[#1E1E1E] text-white font-semibold"
+                  : "text-gray-400 hover:bg-[#222]"
+              }
+            `}
+            onClick={() => activateTab(tab.name)}
+          >
+            <span>{tab.name}</span>
+            <button
+              className="text-gray-400 hover:text-white ml-2"
+              onClick={(e) => {
+                e.stopPropagation();
+                closeTab(tab.name);
+              }}
+            >
+              ×
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* -------------------- CODE / EXPLANATION TABS -------------------- */}
       <div className="flex items-center border-b border-gray-700 bg-[#111]">
         <button
-          onClick={() => setActiveTab("code")}
+          onClick={() => setActiveTabView("code")}
           className={`px-4 py-2 font-semibold cursor-pointer ${
-            activeTab === "code"
-              ? "text-white border border-blue-400 "
+            activeTabView === "code"
+              ? "text-white border border-blue-400"
               : "text-gray-400"
           }`}
         >
-          Code{" "}
-          {displayName && (
-            <span className="text-gray-500 text-sm">({displayName})</span>
-          )}
+          Code
         </button>
 
         <button
-          onClick={() => setActiveTab("explanation")}
+          onClick={() => setActiveTabView("explanation")}
           className={`px-4 py-2 font-semibold cursor-pointer ${
-            activeTab === "explanation"
-              ? "text-white border border-blue-400 "
+            activeTabView === "explanation"
+              ? "text-white border border-blue-400"
               : "text-gray-400"
           }`}
         >
-          Explanation{" "}
-          {displayName && (
-            <span className="text-gray-500 text-sm">({displayName})</span>
-          )}
+          Explanation
         </button>
       </div>
 
-      {projectFiles.length > 0 && (
-        <div className="w-full bg-[#111] border-b border-gray-700 px-3 py-2">
-          <div className="relative w-64" ref={dropdownRef}>
-            <button
-              onClick={() => setShowDropdown(!showDropdown)}
-              className="w-full bg-[#1E1E1E] text-white text-sm px-3 py-2 rounded-md 
-              border-2 border-white hover:border-blue-400 hover:text-blue-400
-              shadow-md flex items-center justify-between"
-            >
-              <span>{projectFiles[activeFile]?.name || "Select file"}</span>
-
-              {/* ▼ Arrow Icon */}
-              <span className="text-white text-xs">
-                {showDropdown ? "▲" : "▼"}
-              </span>
-            </button>
-
-            {showDropdown && (
-              <div
-                className="absolute mt-1 w-full bg-gray-800 border border-blue-400
-                rounded-md shadow-lg z-50 py-1 
-                overflow-hidden select-none"
-              >
-                {projectFiles.map((file, index) => (
-                  <div
-                    key={index}
-                    onClick={() => handleFileSwitch(index)}
-                    className="px-3 py-2 text-blue-400 cursor-pointer text-sm 
-                hover:bg-gray-600 hover:text-white transition-all"
-                    title={file.webkitRelativePath}
-                  >
-                    {file.name}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
+      {/* -------------------- EDITORS -------------------- */}
       <div className="flex-1 overflow-auto relative">
-        {activeTab === "code" && (
+
+        {/* CODE EDITOR */}
+        {activeTabView === "code" && (
           <Editor
             height="100%"
             defaultLanguage="verilog"
             theme="vs-dark"
             value={editorContent}
-            onChange={() => {}}
+            onChange={(v) => setEditorContent(v)}
             options={{
               fontSize: 14,
               automaticLayout: true,
-              scrollBeyondLastLine: false,
-              lineNumbersMinChars: 3,
               minimap: { enabled: true },
               wordWrap: "on",
-              // readOnly: true,
-              readOnly: false,
-              domReadOnly: true,
+              scrollBeyondLastLine: false,
             }}
           />
         )}
 
-        {activeTab === "explanation" && (
+        {/* EXPLANATION EDITOR */}
+        {activeTabView === "explanation" && (
           <Editor
             height="100%"
             defaultLanguage="markdown"
             theme="vs-dark"
             value={explanation}
-            onChange={() => {}}
+            onChange={(v) => setExplanation(v)}
             options={{
               fontSize: 14,
-              automaticLayout: true,
-              scrollBeyondLastLine: false,
               minimap: { enabled: false },
-              lineNumbers: "on",
               wordWrap: "on",
-              readOnly: true,
-              domReadOnly: true,
+              scrollBeyondLastLine: false,
             }}
           />
         )}

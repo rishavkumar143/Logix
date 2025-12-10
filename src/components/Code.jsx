@@ -12,7 +12,6 @@ function Code() {
   );
 
   const [projectFiles, setProjectFiles] = useState([]);
-
   const [activeFile, setActiveFile] = useState(null);
 
   useEffect(() => {
@@ -20,9 +19,7 @@ function Code() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          setProjectFiles(parsed);
-        }
+        if (Array.isArray(parsed)) setProjectFiles(parsed);
       } catch (err) {
         console.error("Error loading project files:", err);
       }
@@ -33,13 +30,10 @@ function Code() {
       const index = parseInt(savedActive, 10);
       setActiveFile(index);
 
-      const savedProj = localStorage.getItem("projectFiles");
-      if (savedProj) {
-        const arr = JSON.parse(savedProj);
-        if (arr[index]) {
-          setEditorContent(arr[index].content);
-          setFileName(arr[index].name);
-        }
+      const arr = JSON.parse(localStorage.getItem("projectFiles") || "[]");
+      if (arr[index]) {
+        setEditorContent(arr[index].content);
+        setFileName(arr[index].name);
       }
     }
   }, []);
@@ -47,13 +41,10 @@ function Code() {
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       <Navbar
-        editorContent={editorContent}
         setEditorContent={setEditorContent}
         fileName={fileName}
         setFileName={setFileName}
-        projectFiles={projectFiles}
         setProjectFiles={setProjectFiles}
-        activeFile={activeFile}
         setActiveFile={setActiveFile}
       />
 
