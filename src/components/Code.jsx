@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "./Navbar";
-import CodeEditor from "./CodeEditor";
+import CodeExplanationPage from "./CodeExplanationPage";
 
 function Code() {
   const [editorContent, setEditorContent] = useState(
@@ -57,7 +57,7 @@ function Code() {
         setActiveFile={setActiveFile}
       />
 
-      <CodeEditor
+      <CodeExplanationPage
         editorContent={editorContent}
         setEditorContent={setEditorContent}
         fileName={fileName}
