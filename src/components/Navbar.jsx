@@ -89,25 +89,36 @@ const Navbar = ({
     resetUI();
   };
 
-  const handleFolderUpload = async (e) => {
-    const files = [...e.target.files];
 
-    const filtered = await Promise.all(
-      files
-        .filter((f) => f.name.match(/\.(v|sv)$/))
-        .map(async (f) => ({ name: f.name, content: await f.text() }))
-    );
+const handleFolderUpload = async (e) => {
+  const files = Array.from(e.target.files);
 
-    if (!filtered.length) return alert("⚠ No Verilog files found!");
+  const filtered = await Promise.all(
+    files
+      .filter((f) => /\.(v|sv)$/i.test(f.name))
+      .map(async (f) => ({
+        name: f.name,
+        webkitRelativePath: f.webkitRelativePath, // ✅ FIX
+        content: await f.text(),
+      }))
+  );
 
-    setProjectFiles(filtered);
-    setActiveFile(0);
-    setFileName(filtered[0].name);
-    setEditorContent(filtered[0].content);
-    saveToRecent(filtered[0].name, filtered[0].content);
+  if (!filtered.length) {
+    alert("⚠ No Verilog files found!");
+    return;
+  }
 
-    resetUI();
-  };
+  setProjectFiles(filtered);
+  setActiveFile(0);
+  setFileName(filtered[0].name);
+  setEditorContent(filtered[0].content);
+
+  localStorage.setItem("projectFiles", JSON.stringify(filtered));
+  localStorage.setItem("activeFile", "0");
+
+  resetUI();
+};
+
 
   const clearAll = () => {
     localStorage.clear();
@@ -152,11 +163,11 @@ const Navbar = ({
                 <span
                   onClick={() => toggleMenu(key)}
                   className={`px-2 py-0.5 cursor-pointer transition-all
-        ${
-          menu.open === key
-            ? "text-[#0078d4] font-medium border-b-2 border-[#0078d4]"
-            : "hover:text-[#0078d4]"
-        }`}
+              ${
+                menu.open === key
+                ? "text-[#0078d4] font-medium border-b-2 border-[#0078d4]"
+                : "hover:text-[#0078d4]"
+              }`}
                 >
                   {label}
                 </span>
@@ -165,7 +176,7 @@ const Navbar = ({
                 {menu.open === key && (
                   <ul
                     className="absolute left-0 mt-1 bg-[#f9f9f9] shadow-lg border border-gray-300
-          rounded-sm w-60 py-1 text-[13px] z-9999 animate-fadeIn"
+                    rounded-sm w-60 py-1 text-[13px] z-9999 animate-fadeIn"
                   >
                     {/* ================= FILE ================= */}
                     {key === "file" && (
@@ -197,8 +208,8 @@ const Navbar = ({
                           {menu.recent && (
                             <ul
                               className="absolute top-0 translate-y-[-2px] left-[100%] 
-      bg-black border border-black-300 shadow-lg rounded-sm 
-      w-[220px] py-1 text-[13px] z-[9999] animate-fadeIn"
+                              bg-black border border-black-300 shadow-lg rounded-sm 
+                              w-[220px] py-1 text-[13px] z-[9999] animate-fadeIn"
                             >
                               {recentFiles && recentFiles.length > 0 ? (
                                 recentFiles.map((f, i) => (

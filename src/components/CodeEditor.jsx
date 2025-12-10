@@ -49,21 +49,21 @@ const CodeEditor = ({
     localStorage.setItem(explanationKey, explanation);
   }, [explanation, explanationKey]);
 
-  const handleFileSwitch = (path) => {
-    const selected = projectFiles.find((f) => f.webkitRelativePath === path);
-    if (!selected) return;
+  const handleFileSwitch = (index) => {
+  const selected = projectFiles[index];
+  if (!selected) return;
 
-    const index = projectFiles.indexOf(selected);
-    setActiveFile(index);
+  setActiveFile(index);
+  setEditorContent(selected.content);
+  setFileName(selected.name);
 
-    setEditorContent(selected.content);
-    setFileName(selected.name);
-    localStorage.setItem("fileName", selected.name);
+  localStorage.setItem("activeFile", index.toString());
+  setExplanation(
+    localStorage.getItem(`explanation-${selected.name}`) || ""
+  );
 
-    setExplanation(localStorage.getItem(`explanation-${selected.name}`) || "");
-
-    setShowDropdown(false);
-  };
+  setShowDropdown(false);
+};
 
   const showPlaceholder = activeTab === "code" && editorContent.trim() === "";
 
@@ -105,30 +105,35 @@ const CodeEditor = ({
             <button
               onClick={() => setShowDropdown(!showDropdown)}
               className="w-full bg-[#1E1E1E] text-white text-sm px-3 py-2 rounded-md 
-                         border-2 border-white hover:border-blue-400 hover:text-blue-400
-                         text-left shadow-md"
+              border-2 border-white hover:border-blue-400 hover:text-blue-400
+              shadow-md flex items-center justify-between"
             >
-              {projectFiles[activeFile]?.name || "Select file"}
+            <span>{projectFiles[activeFile]?.name || "Select file"}</span>
+
+            {/* ▼ Arrow Icon */}
+            <span className="text-white text-xs">
+            {showDropdown ? "▲" : "▼"}
+            </span>
             </button>
 
             {showDropdown && (
               <div
                 className="absolute mt-1 w-full bg-gray-800 border border-blue-400
-                           rounded-md shadow-lg z-50 py-1 
-                           overflow-hidden select-none"
+                rounded-md shadow-lg z-50 py-1 
+                overflow-hidden select-none"
               >
-                {projectFiles.map((file, index) => (
-                  <div
-                    key={index}
-                    onClick={() => handleFileSwitch(file.webkitRelativePath)}
-                    className="px-3 py-2 text-blue-400 cursor-pointer text-sm 
-                               hover:bg-gray-600 hover:text-white transition-all"
-                    title={file.webkitRelativePath}
-                  >
-                    {file.name}
-                  </div>
-                ))}
+              {projectFiles.map((file, index) => (
+              <div
+                key={index}
+                onClick={() => handleFileSwitch(index)}
+                className="px-3 py-2 text-blue-400 cursor-pointer text-sm 
+                hover:bg-gray-600 hover:text-white transition-all"
+                title={file.webkitRelativePath}
+              >
+                {file.name}
               </div>
+            ))}
+            </div>
             )}
           </div>
         </div>
