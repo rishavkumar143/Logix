@@ -30,13 +30,14 @@ const Navbar = ({
     JSON.parse(localStorage.getItem("recentFiles")) || []
   );
 
-  /** -------------------- Helpers ---------------------- */
+  /* -------------------- Helpers ---------------------- */
 
+  // ✅ FIXED: improved recent-file handler
   const saveToRecent = (name, content) => {
     const updated = [
       { name, content },
       ...recentFiles.filter((f) => f.name !== name),
-    ].slice(0, 6);
+    ].slice(0, 15);
 
     setRecentFiles(updated);
     localStorage.setItem("recentFiles", JSON.stringify(updated));
@@ -60,7 +61,7 @@ const Navbar = ({
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  /** -------------------- File Actions ---------------------- */
+  /* -------------------- File Actions ---------------------- */
 
   const handleNewFile = () => {
     setEditorContent("");
@@ -89,36 +90,44 @@ const Navbar = ({
     resetUI();
   };
 
+  /* ---------------------------------------------------------
+     FIXED: OPEN PROJECT FOLDER — add files to recentFiles too
+  -----------------------------------------------------------*/
+  const handleFolderUpload = async (e) => {
+    const files = Array.from(e.target.files);
 
-const handleFolderUpload = async (e) => {
-  const files = Array.from(e.target.files);
+    // Read only .v / .sv files + include relative path
+    const filtered = await Promise.all(
+      files
+        .filter((f) => /\.(v|sv)$/i.test(f.name))
+        .map(async (f) => ({
+          name: f.name,
+          path: f.webkitRelativePath,
+          content: await f.text(),
+        }))
+    );
 
-  const filtered = await Promise.all(
-    files
-      .filter((f) => /\.(v|sv)$/i.test(f.name))
-      .map(async (f) => ({
-        name: f.name,
-        webkitRelativePath: f.webkitRelativePath, // ✅ FIX
-        content: await f.text(),
-      }))
-  );
+    if (!filtered.length) {
+      alert("⚠ No Verilog files found!");
+      return;
+    }
 
-  if (!filtered.length) {
-    alert("⚠ No Verilog files found!");
-    return;
-  }
+    // Set project files for explorer
+    setProjectFiles(filtered);
+    setActiveFile(0);
+    setFileName(filtered[0].name);
+    setEditorContent(filtered[0].content);
 
-  setProjectFiles(filtered);
-  setActiveFile(0);
-  setFileName(filtered[0].name);
-  setEditorContent(filtered[0].content);
+    localStorage.setItem("projectFiles", JSON.stringify(filtered));
+    localStorage.setItem("activeFile", "0");
 
-  localStorage.setItem("projectFiles", JSON.stringify(filtered));
-  localStorage.setItem("activeFile", "0");
+    // ✅ FIX: Add ALL folder files to RECENT
+    filtered.forEach((f) => {
+      saveToRecent(f.path || f.name, f.content);
+    });
 
-  resetUI();
-};
-
+    resetUI();
+  };
 
   const clearAll = () => {
     localStorage.clear();
@@ -131,7 +140,8 @@ const handleFolderUpload = async (e) => {
 
   const handleExit = () => clearAll();
 
-  /** -------------------- Zoom ---------------------- */
+  /* -------------------- Zoom ---------------------- */
+
   const handleZoom = (amount) => {
     const newZoom = Math.min(200, Math.max(50, zoom + amount));
     setZoom(newZoom);
@@ -141,7 +151,7 @@ const handleFolderUpload = async (e) => {
       ?.style.setProperty("transform", `scale(${newZoom / 100})`);
   };
 
-  /** -------------------- UI Classes ---------------------- */
+  /* -------------------- UI Classes ---------------------- */
 
   const rowStyle =
     "flex justify-between px-3 py-[6px] text-[13px] hover:bg-[#0078d4] hover:text-white cursor-pointer";
@@ -159,24 +169,22 @@ const handleFolderUpload = async (e) => {
 
             return (
               <div key={key} className="relative">
-                {/* Menu Label */}
                 <span
                   onClick={() => toggleMenu(key)}
                   className={`px-2 py-0.5 cursor-pointer transition-all
               ${
                 menu.open === key
-                ? "text-[#0078d4] font-medium border-b-2 border-[#0078d4]"
-                : "hover:text-[#0078d4]"
+                  ? "text-[#0078d4] font-medium border-b-2 border-[#0078d4]"
+                  : "hover:text-[#0078d4]"
               }`}
                 >
                   {label}
                 </span>
 
-                {/* --- SHARED DROPDOWN CONTAINER --- */}
                 {menu.open === key && (
                   <ul
                     className="absolute left-0 mt-1 bg-[#f9f9f9] shadow-lg border border-gray-300
-                    rounded-sm w-60 py-1 text-[13px] z-9999 animate-fadeIn"
+                    rounded-sm w-60 py-1 text-[13px] z-[9999] animate-fadeIn"
                   >
                     {/* ================= FILE ================= */}
                     {key === "file" && (
@@ -189,7 +197,14 @@ const handleFolderUpload = async (e) => {
                           className={rowStyle}
                           onClick={() => fileInputRef.current.click()}
                         >
-                          Open File <span className="opacity-60">Ctrl+O</span>
+                          Load File <span className="opacity-60">Ctrl+O</span>
+                        </li>
+
+                        <li
+                          className={rowStyle}
+                          onClick={() => folderInputRef.current.click()}
+                        >
+                          Load Project Folder
                         </li>
 
                         {/* ---- RECENT SUBMENU ---- */}
@@ -211,7 +226,7 @@ const handleFolderUpload = async (e) => {
                               bg-black border border-black-300 shadow-lg rounded-sm 
                               w-[220px] py-1 text-[13px] z-[9999] animate-fadeIn"
                             >
-                              {recentFiles && recentFiles.length > 0 ? (
+                              {recentFiles.length > 0 ? (
                                 recentFiles.map((f, i) => (
                                   <li
                                     key={i}
@@ -236,13 +251,6 @@ const handleFolderUpload = async (e) => {
                         </li>
 
                         <li className="border-t border-gray-300 my-1"></li>
-
-                        <li
-                          className={rowStyle}
-                          onClick={() => folderInputRef.current.click()}
-                        >
-                          Open Project Folder
-                        </li>
 
                         <li
                           className={`${rowStyle} text-red-600 hover:bg-red-600 hover:text-white`}
@@ -324,16 +332,16 @@ const handleFolderUpload = async (e) => {
       {/* ==================== TOOLBAR ==================== */}
       <div className="w-full h-10 bg-[#1E2A33] border-b border-[#3b4b55] flex items-center px-2 gap-1 select-none">
         {[
-          {
-            label: "Load File",
-            action: () => fileInputRef.current.click(),
-            icon: <VscFile size={18} />,
-          },
-          {
-            label: "Load Project",
-            action: () => folderInputRef.current.click(),
-            icon: <VscFolderOpened size={18} />,
-          },
+          // {
+          //   label: "Load File",
+          //   action: () => fileInputRef.current.click(),
+          //   icon: <VscFile size={18} />,
+          // },
+          // {
+          //   label: "Load Project",
+          //   action: () => folderInputRef.current.click(),
+          //   icon: <VscFolderOpened size={18} />,
+          // },
           {
             label: "Explain Code",
             action: () => {},
