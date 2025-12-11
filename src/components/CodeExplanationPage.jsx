@@ -13,7 +13,6 @@ const CodeExplanationPage = ({
   setActiveFile,
 }) => {
   const [showDropdown, setShowDropdown] = useState(false);
-
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -28,7 +27,6 @@ const CodeExplanationPage = ({
   }, []);
 
   const displayName = fileName?.trim() !== "" ? fileName : "";
-
   const tabKey = `activeTab-${displayName || "blank"}`;
 
   const [activeTab, setActiveTab] = useState(
@@ -62,8 +60,6 @@ const CodeExplanationPage = ({
 
     setShowDropdown(false);
   };
-
-  const showPlaceholder = activeTab === "code" && editorContent.trim() === "";
 
   return (
     <div className="w-full flex-1 flex flex-col bg-[#1B1B1B] border border-amber-50 rounded relative">
@@ -107,8 +103,6 @@ const CodeExplanationPage = ({
               shadow-md flex items-center justify-between"
             >
               <span>{projectFiles[activeFile]?.name || "Select file"}</span>
-
-              {/* ▼ Arrow Icon */}
               <span className="text-white text-xs">
                 {showDropdown ? "▲" : "▼"}
               </span>
@@ -117,15 +111,13 @@ const CodeExplanationPage = ({
             {showDropdown && (
               <div
                 className="absolute mt-1 w-full bg-gray-800 border border-blue-400
-                rounded-md shadow-lg z-50 py-1 
-                overflow-hidden select-none"
+                rounded-md shadow-lg z-50 py-1 overflow-hidden select-none"
               >
                 {projectFiles.map((file, index) => (
                   <div
                     key={index}
                     onClick={() => handleFileSwitch(index)}
-                    className="px-3 py-2 text-blue-400 cursor-pointer text-sm 
-                hover:bg-gray-600 hover:text-white transition-all"
+                    className="px-3 py-2 text-blue-400 cursor-pointer text-sm hover:bg-gray-600 hover:text-white transition-all"
                     title={file.webkitRelativePath}
                   >
                     {file.name}
@@ -145,14 +137,15 @@ const CodeExplanationPage = ({
             theme="vs-dark"
             value={editorContent}
             onChange={() => {}}
+            onMount={(editor) => {
+              window.monacoEditor = editor; // STORE CODE EDITOR
+            }}
             options={{
               fontSize: 14,
               automaticLayout: true,
               scrollBeyondLastLine: false,
-              lineNumbersMinChars: 3,
               minimap: { enabled: true },
               wordWrap: "on",
-              // readOnly: true,
               readOnly: false,
               domReadOnly: true,
             }}
@@ -166,14 +159,16 @@ const CodeExplanationPage = ({
             theme="vs-dark"
             value={explanation}
             onChange={() => {}}
+            onMount={(editor) => {
+              window.monacoExplanationEditor = editor; // STORE EXPLANATION EDITOR
+            }}
             options={{
               fontSize: 14,
               automaticLayout: true,
               scrollBeyondLastLine: false,
               minimap: { enabled: false },
-              lineNumbers: "on",
               wordWrap: "on",
-              readOnly: true,
+              readOnly: false,
               domReadOnly: true,
             }}
           />

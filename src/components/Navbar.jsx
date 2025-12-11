@@ -14,14 +14,12 @@ const Navbar = ({
   const folderInputRef = useRef(null);
   const menuRef = useRef(null);
 
-  const [zoom, setZoom] = useState(100);
+  const [zoom, setZoom] = useState(14); // BASE FONT SIZE
+
   const [recentFiles, setRecentFiles] = useState(
     JSON.parse(localStorage.getItem("recentFiles")) || []
   );
 
-  /* -------------------- Helpers ---------------------- */
-
-  // ✅ FIXED: improved recent-file handler
   const saveToRecent = (name, content) => {
     const updated = [
       { name, content },
@@ -50,6 +48,45 @@ const Navbar = ({
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  /* ------------------------------------------------------------------
+     VS CODE ZOOM IMPLEMENTATION FOR BOTH EDITORS
+  ------------------------------------------------------------------ */
+  const applyZoom = (fontSize) => {
+    if (window.monacoEditor) {
+      window.monacoEditor.updateOptions({ fontSize });
+    }
+    if (window.monacoExplanationEditor) {
+      window.monacoExplanationEditor.updateOptions({ fontSize });
+    }
+  };
+
+  const handleZoom = (amount) => {
+    const newFont = Math.min(40, Math.max(6, zoom + amount));
+    setZoom(newFont);
+    applyZoom(newFont);
+  };
+
+  /* SHORTCUT KEYS */
+  useEffect(() => {
+    const keyHandler = (e) => {
+      if (e.ctrlKey && (e.key === "+" || e.key === "=")) {
+        e.preventDefault();
+        handleZoom(+2);
+      }
+      if (e.ctrlKey && e.key === "-") {
+        e.preventDefault();
+        handleZoom(-2);
+      }
+      if (e.ctrlKey && e.key === "0") {
+        e.preventDefault();
+        handleZoom(14 - zoom);
+      }
+    };
+
+    window.addEventListener("keydown", keyHandler);
+    return () => window.removeEventListener("keydown", keyHandler);
+  }, [zoom]);
+
   /* -------------------- File Actions ---------------------- */
 
   const handleNewFile = () => {
@@ -75,17 +112,12 @@ const Navbar = ({
       setActiveFile(null);
     };
     reader.readAsText(file);
-
     resetUI();
   };
 
-  /* ---------------------------------------------------------
-     FIXED: OPEN PROJECT FOLDER — add files to recentFiles too
-  -----------------------------------------------------------*/
   const handleFolderUpload = async (e) => {
     const files = Array.from(e.target.files);
 
-    // Read only .v / .sv files + include relative path
     const filtered = await Promise.all(
       files
         .filter((f) => /\.(v|sv)$/i.test(f.name))
@@ -101,7 +133,6 @@ const Navbar = ({
       return;
     }
 
-    // Set project files for explorer
     setProjectFiles(filtered);
     setActiveFile(0);
     setFileName(filtered[0].name);
@@ -110,10 +141,9 @@ const Navbar = ({
     localStorage.setItem("projectFiles", JSON.stringify(filtered));
     localStorage.setItem("activeFile", "0");
 
-    // ✅ FIX: Add ALL folder files to RECENT
-    filtered.forEach((f) => {
-      saveToRecent(f.path || f.name, f.content);
-    });
+    filtered.forEach((f) =>
+      saveToRecent(f.path || f.name, f.content)
+    );
 
     resetUI();
   };
@@ -129,25 +159,11 @@ const Navbar = ({
 
   const handleExit = () => clearAll();
 
-  /* -------------------- Zoom ---------------------- */
-
-  const handleZoom = (amount) => {
-    const newZoom = Math.min(200, Math.max(50, zoom + amount));
-    setZoom(newZoom);
-
-    document
-      .querySelector(".monaco-editor")
-      ?.style.setProperty("transform", `scale(${newZoom / 100})`);
-  };
-
-  /* -------------------- UI Classes ---------------------- */
-
   const rowStyle =
     "flex justify-between px-3 py-[6px] text-[13px] hover:bg-[#0078d4] hover:text-white cursor-pointer";
 
   return (
     <>
-      {/* ==================== MENU BAR ==================== */}
       <nav
         ref={menuRef}
         className="bg-white border-b border-gray-300 h-7 flex items-center px-3 gap-5 text-[13px] select-none"
@@ -160,12 +176,11 @@ const Navbar = ({
               <div key={key} className="relative">
                 <span
                   onClick={() => toggleMenu(key)}
-                  className={`px-2 py-0.5 cursor-pointer transition-all
-              ${
-                menu.open === key
-                  ? "text-[#0078d4] font-medium border-b-2 border-[#0078d4]"
-                  : "hover:text-[#0078d4]"
-              }`}
+                  className={`px-2 py-0.5 cursor-pointer transition-all ${
+                    menu.open === key
+                      ? "text-[#0078d4] font-medium border-b-2 border-[#0078d4]"
+                      : "hover:text-[#0078d4]"
+                  }`}
                 >
                   {label}
                 </span>
@@ -175,27 +190,23 @@ const Navbar = ({
                     className="absolute left-0 mt-1 bg-[#f9f9f9] shadow-lg border border-gray-300
                     rounded-sm w-60 py-1 text-[13px] z-9999 animate-fadeIn"
                   >
-                    {/* ================= FILE ================= */}
                     {key === "file" && (
                       <>
                         <li className={rowStyle} onClick={handleNewFile}>
                           New <span className="opacity-60">Ctrl+N</span>
                         </li>
-
                         <li
                           className={rowStyle}
                           onClick={() => fileInputRef.current.click()}
                         >
                           Load File <span className="opacity-60">Ctrl+O</span>
                         </li>
-
                         <li
                           className={rowStyle}
                           onClick={() => folderInputRef.current.click()}
                         >
                           Load Project Folder
                         </li>
-
                         {/* ---- RECENT SUBMENU ---- */}
                         <li
                           className={`${rowStyle} relative`}
@@ -238,7 +249,6 @@ const Navbar = ({
                             </ul>
                           )}
                         </li>
-
                         <li className="border-t border-gray-300 my-1"></li>
 
                         <li
@@ -250,64 +260,20 @@ const Navbar = ({
                       </>
                     )}
 
-                    {/* ================= EDIT ================= */}
-                    {key === "edit" && (
-                      <>
-                        <li className={rowStyle}>
-                          Undo <span className="opacity-60">Ctrl+Z</span>
-                        </li>
-                        <li className={rowStyle}>
-                          Redo <span className="opacity-60">Ctrl+Y</span>
-                        </li>
-                        <li className={rowStyle}>
-                          Find <span className="opacity-60">Ctrl+F</span>
-                        </li>
-                      </>
-                    )}
-
-                    {/* ================= VIEW ================= */}
                     {key === "view" && (
                       <>
-                        <li
-                          className={rowStyle}
-                          onClick={() => handleZoom(+10)}
-                        >
+                        <li className={rowStyle} onClick={() => handleZoom(+2)}>
                           Zoom In <span className="opacity-60">Ctrl++</span>
                         </li>
-                        <li
-                          className={rowStyle}
-                          onClick={() => handleZoom(-10)}
-                        >
+                        <li className={rowStyle} onClick={() => handleZoom(-2)}>
                           Zoom Out <span className="opacity-60">Ctrl+-</span>
                         </li>
                         <li
                           className={rowStyle}
-                          onClick={() => handleZoom(100 - zoom)}
+                          onClick={() => handleZoom(14 - zoom)}
                         >
                           Reset Zoom <span className="opacity-60">Ctrl+0</span>
                         </li>
-                      </>
-                    )}
-
-                    {/* ================= GENERATE ================= */}
-                    {key === "generate" && (
-                      <>
-                        <li className={rowStyle}>Generate Testbench</li>
-                        <li className={rowStyle}>Generate UVM Testbench</li>
-                        <li className={rowStyle}>Generate Report</li>
-                      </>
-                    )}
-
-                    {/* ================= GENERATE VIEW ================= */}
-                    {key === "generateview" && (
-                      <li className={rowStyle}>Hierarchy View</li>
-                    )}
-
-                    {/* ================= HELP ================= */}
-                    {key === "help" && (
-                      <>
-                        <li className={rowStyle}>Documentation</li>
-                        <li className={rowStyle}>About</li>
                       </>
                     )}
                   </ul>
@@ -318,7 +284,6 @@ const Navbar = ({
         )}
       </nav>
 
-      {/* ==================== TOOLBAR ==================== */}
       <div className="w-full h-10 bg-[#1E2A33] border-b border-[#3b4b55] flex items-center px-2 gap-1 select-none">
         {[
           {
@@ -351,7 +316,6 @@ const Navbar = ({
         <span className="text-xs text-gray-400">Ready</span>
       </div>
 
-      {/* Hidden Inputs */}
       <input
         ref={fileInputRef}
         type="file"
@@ -359,6 +323,7 @@ const Navbar = ({
         className="hidden"
         onChange={handleUploadFile}
       />
+
       <input
         ref={folderInputRef}
         type="file"
