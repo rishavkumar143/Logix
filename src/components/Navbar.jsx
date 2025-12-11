@@ -260,6 +260,21 @@ const Navbar = ({
                       </>
                     )}
 
+
+                    {key === "edit" && (
+                      <>
+                        <li className={rowStyle}>
+                          Undo <span className="opacity-60">Ctrl+Z</span>
+                        </li>
+                        <li className={rowStyle}>
+                          Redo <span className="opacity-60">Ctrl+Y</span>
+                        </li>
+                        <li className={rowStyle}>
+                          Find <span className="opacity-60">Ctrl+F</span>
+                        </li>
+                      </>
+                    )}
+
                     {key === "view" && (
                       <>
                         <li className={rowStyle} onClick={() => handleZoom(+2)}>
@@ -274,6 +289,27 @@ const Navbar = ({
                         >
                           Reset Zoom <span className="opacity-60">Ctrl+0</span>
                         </li>
+                      </>
+                    )}
+                    {/* ================= GENERATE ================= */}
+                    {key === "generate" && (
+                      <>
+                        <li className={rowStyle}>Generate Testbench</li>
+                        <li className={rowStyle}>Generate UVM Testbench</li>
+                        <li className={rowStyle}>Generate Report</li>
+                      </>
+                    )}
+
+                    {/* ================= GENERATE VIEW ================= */}
+                    {key === "generateview" && (
+                      <li className={rowStyle}>Hierarchy View</li>
+                    )}
+
+                    {/* ================= HELP ================= */}
+                    {key === "help" && (
+                      <>
+                        <li className={rowStyle}>Documentation</li>
+                        <li className={rowStyle}>About</li>
                       </>
                     )}
                   </ul>
