@@ -4,10 +4,8 @@ import Editor from "@monaco-editor/react";
 const CodeExplanationPage = ({
   editorContent,
   setEditorContent,
-
   fileName,
   setFileName,
-
   projectFiles,
   activeFile,
   setActiveFile,
@@ -16,29 +14,27 @@ const CodeExplanationPage = ({
   const dropdownRef = useRef(null);
 
   useEffect(() => {
-    const handleClickOutside = (e) => {
+    const handler = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setShowDropdown(false);
       }
     };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, []);
 
   const displayName = fileName?.trim() !== "" ? fileName : "";
-  const tabKey = `activeTab-${displayName || "blank"}`;
 
+  const activeTabKey = `activeTab-${displayName || "blank"}`;
   const [activeTab, setActiveTab] = useState(
-    localStorage.getItem(tabKey) || "code"
+    localStorage.getItem(activeTabKey) || "code"
   );
 
   useEffect(() => {
-    localStorage.setItem(tabKey, activeTab);
-  }, [activeTab, tabKey]);
+    localStorage.setItem(activeTabKey, activeTab);
+  }, [activeTab, activeTabKey]);
 
   const explanationKey = `explanation-${displayName || "blank"}`;
-
   const [explanation, setExplanation] = useState(
     localStorage.getItem(explanationKey) || ""
   );
@@ -47,19 +43,42 @@ const CodeExplanationPage = ({
     localStorage.setItem(explanationKey, explanation);
   }, [explanation, explanationKey]);
 
-  const handleFileSwitch = (index) => {
-    const selected = projectFiles[index];
-    if (!selected) return;
+const handleFileSwitch = (index) => {
+  const selected = projectFiles[index];
+  if (!selected) return;
 
-    setActiveFile(index);
-    setEditorContent(selected.content);
-    setFileName(selected.name);
+  // OPEN IN EDITOR
+  setActiveFile(index);
+  setEditorContent(selected.content);
+  setFileName(selected.name);
 
-    localStorage.setItem("activeFile", index.toString());
-    setExplanation(localStorage.getItem(`explanation-${selected.name}`) || "");
+  // UPDATE LOCAL STORAGE FOR FOLDER ACTIVE FILE
+  localStorage.setItem("activeFile", index.toString());
 
-    setShowDropdown(false);
-  };
+  // LOAD PREVIOUS EXPLANATION IF ANY
+  setExplanation(localStorage.getItem(`explanation-${selected.name}`) || "");
+
+  // -------------------------
+  // ADD TO RECENT FILES LIST
+  // -------------------------
+  // ADD TO RECENT
+const recent = JSON.parse(localStorage.getItem("recentFiles") || "[]");
+const updated = [
+  { name: selected.name, content: selected.content },
+  ...recent.filter((f) => f.name !== selected.name),
+].slice(0, 15);
+
+localStorage.setItem("recentFiles", JSON.stringify(updated));
+
+// Notify Navbar to update immediately
+window.dispatchEvent(new Event("recentFilesUpdated"));
+
+
+
+  // CLOSE DROPDOWN
+  setShowDropdown(false);
+};
+
 
   return (
     <div className="w-full flex-1 flex flex-col bg-[#1B1B1B] border border-amber-50 rounded relative">
@@ -68,7 +87,7 @@ const CodeExplanationPage = ({
           onClick={() => setActiveTab("code")}
           className={`px-4 py-2 font-semibold cursor-pointer ${
             activeTab === "code"
-              ? "text-white border border-blue-400 "
+              ? "text-white border border-blue-400"
               : "text-gray-400"
           }`}
         >
@@ -82,7 +101,7 @@ const CodeExplanationPage = ({
           onClick={() => setActiveTab("explanation")}
           className={`px-4 py-2 font-semibold cursor-pointer ${
             activeTab === "explanation"
-              ? "text-white border border-blue-400 "
+              ? "text-white border border-blue-400"
               : "text-gray-400"
           }`}
         >
@@ -93,6 +112,7 @@ const CodeExplanationPage = ({
         </button>
       </div>
 
+      {/* Dropdown only when folder is loaded */}
       {projectFiles.length > 0 && (
         <div className="w-full bg-[#111] border-b border-gray-700 px-3 py-2">
           <div className="relative w-64" ref={dropdownRef}>
@@ -110,15 +130,13 @@ const CodeExplanationPage = ({
 
             {showDropdown && (
               <div
-                className="absolute mt-1 w-full bg-gray-800 border border-blue-400
-                rounded-md shadow-lg z-50 py-1 overflow-hidden select-none"
+                className="absolute mt-1 w-full bg-gray-800 border border-blue-400 rounded-md shadow-lg z-50 py-1"
               >
                 {projectFiles.map((file, index) => (
                   <div
                     key={index}
                     onClick={() => handleFileSwitch(index)}
-                    className="px-3 py-2 text-blue-400 cursor-pointer text-sm hover:bg-gray-600 hover:text-white transition-all"
-                    title={file.webkitRelativePath}
+                    className="px-3 py-2 cursor-pointer text-sm text-blue-400 hover:bg-gray-600 hover:text-white"
                   >
                     {file.name}
                   </div>
@@ -138,16 +156,15 @@ const CodeExplanationPage = ({
             value={editorContent}
             onChange={() => {}}
             onMount={(editor) => {
-              window.monacoEditor = editor; // STORE CODE EDITOR
+              window.monacoEditor = editor;
             }}
             options={{
               fontSize: 14,
               automaticLayout: true,
-              scrollBeyondLastLine: false,
               minimap: { enabled: true },
               wordWrap: "on",
+              scrollBeyondLastLine: false,
               readOnly: false,
-              domReadOnly: true,
             }}
           />
         )}
@@ -160,16 +177,15 @@ const CodeExplanationPage = ({
             value={explanation}
             onChange={() => {}}
             onMount={(editor) => {
-              window.monacoExplanationEditor = editor; // STORE EXPLANATION EDITOR
+              window.monacoExplanationEditor = editor;
             }}
             options={{
               fontSize: 14,
               automaticLayout: true,
-              scrollBeyondLastLine: false,
               minimap: { enabled: false },
               wordWrap: "on",
+              scrollBeyondLastLine: false,
               readOnly: false,
-              domReadOnly: true,
             }}
           />
         )}

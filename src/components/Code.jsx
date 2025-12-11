@@ -15,25 +15,28 @@ function Code() {
   const [activeFile, setActiveFile] = useState(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem("projectFiles");
-    if (saved) {
+    const savedFolder = localStorage.getItem("projectFiles");
+
+    if (savedFolder) {
       try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) setProjectFiles(parsed);
+        const parsed = JSON.parse(savedFolder);
+
+        if (Array.isArray(parsed)) {
+          setProjectFiles(parsed);
+
+          const savedActive = localStorage.getItem("activeFile");
+          if (savedActive !== null) {
+            const idx = parseInt(savedActive, 10);
+
+            if (parsed[idx]) {
+              setActiveFile(idx);
+              setEditorContent(parsed[idx].content);
+              setFileName(parsed[idx].name);
+            }
+          }
+        }
       } catch (err) {
-        console.error("Error loading project files:", err);
-      }
-    }
-
-    const savedActive = localStorage.getItem("activeFile");
-    if (savedActive !== null) {
-      const index = parseInt(savedActive, 10);
-      setActiveFile(index);
-
-      const arr = JSON.parse(localStorage.getItem("projectFiles") || "[]");
-      if (arr[index]) {
-        setEditorContent(arr[index].content);
-        setFileName(arr[index].name);
+        console.log("Folder parse error:", err);
       }
     }
   }, []);
@@ -42,7 +45,6 @@ function Code() {
     <div className="flex flex-col h-screen overflow-hidden">
       <Navbar
         setEditorContent={setEditorContent}
-        fileName={fileName}
         setFileName={setFileName}
         setProjectFiles={setProjectFiles}
         setActiveFile={setActiveFile}
