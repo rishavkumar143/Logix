@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FaCaretRight } from "react-icons/fa";
-import { VscTrash, VscCopy, VscCircuitBoard } from "react-icons/vsc";
 
 const Navbar = ({
   setEditorContent,
@@ -312,9 +311,11 @@ const Navbar = ({
                     {/* ================= GENERATE ================= */}
                     {key === "generate" && (
                       <>
-                        <li className={rowStyle}>Generate Testbench</li>
-                        <li className={rowStyle}>Generate UVM Testbench</li>
+                        <li className={rowStyle}>Generate APB/UVM TB</li>
+                        <li className={rowStyle}>Generate AXI TB</li>
                         <li className={rowStyle}>Generate Report</li>
+                        <li className="border-t border-gray-300 my-1"></li>
+                        <li className={rowStyle}>Include Header File</li>
                       </>
                     )}
 
@@ -346,17 +347,14 @@ const Navbar = ({
           {
             label: "Explain Code",
             action: () => {},
-            icon: <VscCircuitBoard size={18} />,
           },
           {
             label: "Copy Explanation",
             action: () => {},
-            icon: <VscCopy size={18} />,
           },
           {
             label: "Clear All",
             action: clearAll,
-            icon: <VscTrash size={18} />,
           },
         ].map((btn) => (
           <button
@@ -369,8 +367,8 @@ const Navbar = ({
           </button>
         ))}
 
-        <div className="w-px h-6 bg-[#3b4b55] mx-2" />
-        <span className="text-xs text-gray-400">Ready</span>
+        {/* <div className="w-px h-6 bg-[#3b4b55] mx-2" />
+        <span className="text-xs text-gray-400">Ready</span> */}
       </div>
 
       {/* File Inputs */}
