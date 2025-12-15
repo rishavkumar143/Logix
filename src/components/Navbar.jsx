@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FaCaretRight } from "react-icons/fa";
+import axios from "axios";
+import { baseUrl } from "../baseUrl";
 
 const Navbar = ({
   setEditorContent,
@@ -48,14 +50,15 @@ const Navbar = ({
   }, []);
 
   useEffect(() => {
-  const refreshRecent = () => {
-    const list = JSON.parse(localStorage.getItem("recentFiles")) || [];
-    setRecentFiles(list);
-  };
+    const refreshRecent = () => {
+      const list = JSON.parse(localStorage.getItem("recentFiles")) || [];
+      setRecentFiles(list);
+    };
 
-  window.addEventListener("recentFilesUpdated", refreshRecent);
-  return () => window.removeEventListener("recentFilesUpdated", refreshRecent);
-}, []);
+    window.addEventListener("recentFilesUpdated", refreshRecent);
+    return () =>
+      window.removeEventListener("recentFilesUpdated", refreshRecent);
+  }, []);
 
   /* ZOOM */
   const applyZoom = (fontSize) => {
@@ -111,21 +114,69 @@ const Navbar = ({
     saveToRecent(name, content);
   };
 
-  const handleUploadFile = (e) => {
-    const file = e.target.files[0];
+  // const handleUploadFile = (e) => {
+  //   const file = e.target.files[0];
+  //   if (!file) return;
+
+  //   const ext = file.name.split(".").pop().toLowerCase();
+  //   if (!["v", "sv"].includes(ext)) return alert("⚠ Only .v or .sv allowed!");
+
+  //   const reader = new FileReader();
+  //   reader.onload = () => {
+  //     openSingleFile(file.name, reader.result.trim());
+  //   };
+
+  //   reader.readAsText(file);
+  //   resetUI();
+  // };
+
+
+    //Load File API Call Start
+
+  const handleUploadFile = async (e) => {
+    const file = e.target.files?.[0];
     if (!file) return;
 
+    // Optional: validate file type
+    const allowedExt = ["v", "sv"];
     const ext = file.name.split(".").pop().toLowerCase();
-    if (!["v", "sv"].includes(ext)) return alert("⚠ Only .v or .sv allowed!");
+    if (!allowedExt.includes(ext)) {
+      console.error("Invalid file type");
+      return;
+    }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      openSingleFile(file.name, reader.result.trim());
-    };
+    const formData = new FormData(); // ✅ correct
+    formData.append("file", file);
 
-    reader.readAsText(file);
-    resetUI();
+    try {
+      const response = await axios.post(`${baseUrl}/upload`, formData);
+
+      if(!response.status){
+        alert(
+          "Failed to fetch Data"
+        )
+        return
+      }
+
+      let data = response.data
+
+        const reader = new FileReader();
+        reader.onload = () => {
+          openSingleFile(data.filename, data.preview.trim());
+        };
+
+        reader.readAsText(file);
+        resetUI();
+
+      // console.log("Upload success:", response.data.filename);
+      // console.log("Upload success:", response.data.preview);
+    } catch (err) {
+      console.error("Upload failed:", err.response?.data || err.message);
+    }
   };
+
+
+  //  Load File API End
 
   /* -------------------- FOLDER OPEN -------------------- */
 
@@ -288,9 +339,15 @@ const Navbar = ({
                     {/* EDIT MENU */}
                     {key === "edit" && (
                       <>
-                        <li className={rowStyle}>Undo <span className="opacity-60">Ctrl+Z</span></li>
-                        <li className={rowStyle}>Redo <span className="opacity-60">Ctrl+Y</span></li>
-                        <li className={rowStyle}>Find <span className="opacity-60">Ctrl+F</span></li>
+                        <li className={rowStyle}>
+                          Undo <span className="opacity-60">Ctrl+Z</span>
+                        </li>
+                        <li className={rowStyle}>
+                          Redo <span className="opacity-60">Ctrl+Y</span>
+                        </li>
+                        <li className={rowStyle}>
+                          Find <span className="opacity-60">Ctrl+F</span>
+                        </li>
                       </>
                     )}
 
@@ -301,9 +358,12 @@ const Navbar = ({
                           Zoom In <span className="opacity-60">Ctrl++</span>
                         </li>
                         <li className={rowStyle} onClick={() => handleZoom(-2)}>
-                          Zoom Out <span className="opacity-60">Ctrl  --</span>
+                          Zoom Out <span className="opacity-60">Ctrl --</span>
                         </li>
-                        <li className={rowStyle} onClick={() => handleZoom(14 - zoom)}>
+                        <li
+                          className={rowStyle}
+                          onClick={() => handleZoom(14 - zoom)}
+                        >
                           Reset Zoom <span className="opacity-60">Ctrl+0</span>
                         </li>
                       </>
@@ -333,8 +393,6 @@ const Navbar = ({
                     )}
                   </ul>
                 )}
-                  
-                
               </div>
             );
           }

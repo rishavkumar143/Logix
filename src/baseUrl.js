@@ -1,0 +1,1 @@
+export const baseUrl = `https://python.verifplay.com/api`
