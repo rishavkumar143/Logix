@@ -16,7 +16,7 @@ const CodeExplanationPage = ({
 useEffect(() => {
   window.setExplanationFromAPI = (text) => {
     setExplanation(text);
-    setActiveTab("explanation"); // auto switch to explanation tab
+    setActiveTab("explanation");
   };
 }, []);
 
@@ -65,9 +65,6 @@ const handleFileSwitch = (index) => {
   // LOAD PREVIOUS EXPLANATION IF ANY
   setExplanation(localStorage.getItem(`explanation-${selected.name}`) || "");
 
-  // -------------------------
-  // ADD TO RECENT FILES LIST
-  // -------------------------
   // ADD TO RECENT
 const recent = JSON.parse(localStorage.getItem("recentFiles") || "[]");
 const updated = [

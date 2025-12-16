@@ -114,21 +114,6 @@ const Navbar = ({
     saveToRecent(name, content);
   };
 
-  // const handleUploadFile = (e) => {
-  //   const file = e.target.files[0];
-  //   if (!file) return;
-
-  //   const ext = file.name.split(".").pop().toLowerCase();
-  //   if (!["v", "sv"].includes(ext)) return alert("⚠ Only .v or .sv allowed!");
-
-  //   const reader = new FileReader();
-  //   reader.onload = () => {
-  //     openSingleFile(file.name, reader.result.trim());
-  //   };
-
-  //   reader.readAsText(file);
-  //   resetUI();
-  // };
 
   const handleExplainCode = async () => {
   if (!window.monacoEditor) {
@@ -139,7 +124,7 @@ const Navbar = ({
   const code = window.monacoEditor.getValue();
 
   if (!code.trim()) {
-    alert("Code empty hai");
+    alert("Code is empty!");
     return;
   }
 
@@ -159,7 +144,6 @@ const Navbar = ({
     window.setExplanationFromAPI("Error while explaining code");
   }
 };
-
 
 
   //Load File API Call Start
@@ -270,17 +254,23 @@ const handleCopyExplanation = async () => {
   /* -------------------- CLEAR ALL -------------------- */
 
   const clearAll = () => {
-    localStorage.clear();
-    setEditorContent("");
-    setFileName("");
-    setProjectFiles([]);
-    setActiveFile(null);
+  localStorage.clear();
+  setEditorContent("");
+  setFileName("");
+  setProjectFiles([]);
+  setActiveFile(null);
 
-    setRecentFiles([]);
-    localStorage.setItem("recentFiles", JSON.stringify([]));
+  setRecentFiles([]);
+  localStorage.setItem("recentFiles", JSON.stringify([]));
 
-    resetUI();
-  };
+  // ⬇️ ADD THIS (EXPLANATION CLEAR)
+  if (window.setExplanationFromAPI) {
+    window.setExplanationFromAPI("");
+  }
+
+  resetUI();
+};
+
 
   const handleExit = () => clearAll();
 
@@ -424,17 +414,21 @@ const handleCopyExplanation = async () => {
                     {/* ================= GENERATE ================= */}
                     {key === "generate" && (
                       <>
-                        <li className={rowStyle}>Generate APB/UVM TB</li>
-                        <li className={rowStyle}>Generate AXI TB</li>
+                        <li className={rowStyle}>Generate APB/UVM Testbench</li>
+                        <li className={rowStyle}>Generate AXI Testbench</li>
                         <li className={rowStyle}>Generate Report</li>
                         <li className="border-t border-gray-300 my-1"></li>
-                        <li className={rowStyle}>Include Header File</li>
+                        <li className={rowStyle}>Include Header Preview</li>
                       </>
                     )}
 
                     {/* ================= GENERATE VIEW ================= */}
                     {key === "generateview" && (
+                      <>
                       <li className={rowStyle}>Hierarchy View</li>
+                      <li className={rowStyle}>Schematic View</li>
+                      <li className={rowStyle}>Explain Gate Level Netlist</li>
+                      </>
                     )}
 
                     {/* ================= HELP ================= */}
