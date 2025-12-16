@@ -130,8 +130,39 @@ const Navbar = ({
   //   resetUI();
   // };
 
+  const handleExplainCode = async () => {
+  if (!window.monacoEditor) {
+    alert("No code found!");
+    return;
+  }
 
-    //Load File API Call Start
+  const code = window.monacoEditor.getValue();
+
+  if (!code.trim()) {
+    alert("Code empty hai");
+    return;
+  }
+
+  try {
+    const res = await axios.post(
+      `${baseUrl}/explain`,
+      { code }
+    );
+
+    if (res.data?.explanation) {
+      window.setExplanationFromAPI(res.data.explanation);
+    } else {
+      window.setExplanationFromAPI("No explanation received");
+    }
+  } catch (err) {
+    console.error(err);
+    window.setExplanationFromAPI("Error while explaining code");
+  }
+};
+
+
+
+  //Load File API Call Start
 
   const handleUploadFile = async (e) => {
     const file = e.target.files?.[0];
@@ -151,22 +182,20 @@ const Navbar = ({
     try {
       const response = await axios.post(`${baseUrl}/upload`, formData);
 
-      if(!response.status){
-        alert(
-          "Failed to fetch Data"
-        )
-        return
+      if (!response.status) {
+        alert("Failed to fetch Data");
+        return;
       }
 
-      let data = response.data
+      let data = response.data;
 
-        const reader = new FileReader();
-        reader.onload = () => {
-          openSingleFile(data.filename, data.preview.trim());
-        };
+      const reader = new FileReader();
+      reader.onload = () => {
+        openSingleFile(data.filename, data.preview.trim());
+      };
 
-        reader.readAsText(file);
-        resetUI();
+      reader.readAsText(file);
+      resetUI();
 
       // console.log("Upload success:", response.data.filename);
       // console.log("Upload success:", response.data.preview);
@@ -175,8 +204,6 @@ const Navbar = ({
     }
   };
 
-
-  //  Load File API End
 
   /* -------------------- FOLDER OPEN -------------------- */
 
@@ -213,6 +240,32 @@ const Navbar = ({
 
     resetUI();
   };
+
+  //Copy Explanation API Starts
+  
+const handleCopyExplanation = async () => {
+  // Explanation editor must exist
+  if (!window.monacoExplanationEditor) {
+    alert("Explanation editor not ready");
+    return;
+  }
+
+  // Read CURRENT content from editor (including user edits)
+  const explanationText = window.monacoExplanationEditor.getValue();
+
+  if (!explanationText || !explanationText.trim()) {
+    alert("Nothing to copy");
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(explanationText);
+
+    alert("Explanation copied successfully");
+  } catch (err) {
+    console.error("Copy Explanation error:", err.message);
+  }
+};
 
   /* -------------------- CLEAR ALL -------------------- */
 
@@ -404,11 +457,11 @@ const Navbar = ({
         {[
           {
             label: "Explain Code",
-            action: () => {},
+            action: handleExplainCode,
           },
           {
             label: "Copy Explanation",
-            action: () => {},
+            action: handleCopyExplanation,
           },
           {
             label: "Clear All",

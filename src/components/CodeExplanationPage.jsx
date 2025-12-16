@@ -12,6 +12,13 @@ const CodeExplanationPage = ({
 }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
+  // Explanation API
+useEffect(() => {
+  window.setExplanationFromAPI = (text) => {
+    setExplanation(text);
+    setActiveTab("explanation"); // auto switch to explanation tab
+  };
+}, []);
 
   useEffect(() => {
     const handler = (e) => {

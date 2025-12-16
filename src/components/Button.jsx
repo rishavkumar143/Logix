@@ -142,6 +142,7 @@ const Button = ({
           </button>
 
           <button
+            onClick={handleCopyExplanation}
             className="bg-gray-900 text-amber-50 h-7 px-4 rounded-3xl text-xs 
           transition-all hover:bg-orange-600 cursor-pointer"
           >
