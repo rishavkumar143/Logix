@@ -267,10 +267,14 @@ const handleCopyExplanation = async () => {
   setRecentFiles([]);
   localStorage.setItem("recentFiles", JSON.stringify([]));
 
-  // ⬇️ ADD THIS (EXPLANATION CLEAR)
+  // ADD THIS (EXPLANATION CLEAR)
   if (window.setExplanationFromAPI) {
     window.setExplanationFromAPI("");
   }
+  if (window.setTestbenchFromAPI) {
+  window.setTestbenchFromAPI("");
+}
+localStorage.removeItem("testbench-blank");
 
   resetUI();
 };
@@ -418,7 +422,38 @@ const handleCopyExplanation = async () => {
                     {/* ================= GENERATE ================= */}
                     {key === "generate" && (
                       <>
-                        <li className={rowStyle}>Generate APB/UVM Testbench</li>
+                        <li
+  className={rowStyle}
+  onClick={async () => {
+    // 1️⃣ CLICK PE PEHLE TESTBENCH BLANK
+    if (window.setTestbenchFromAPI) {
+      window.setTestbenchFromAPI("");
+    }
+
+    try {
+      // 2️⃣ API CALL
+      const res = await axios.post(
+        "https://python.verifplay.com/api/uvm",
+        {
+          code: window.monacoEditor?.getValue() || "",
+        }
+      );
+
+      // 3️⃣ SIRF API RESPONSE HI SHOW HO
+      window.setTestbenchFromAPI(
+        res.data?.testbench || "// No testbench generated"
+      );
+    } catch (err) {
+      window.setTestbenchFromAPI("// Error generating testbench");
+    }
+
+    setMenu({ open: null, recent: false });
+  }}
+>
+  Generate APB/UVM Testbench
+</li>
+
+
                         <li className={rowStyle}>Generate AXI Testbench</li>
                         <li className={rowStyle}>Generate Report</li>
                         <li className="border-t border-gray-300 my-1"></li>

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "./Navbar";
-import CodeExplanationPage from "./CodeExplanationPage";
+import CodeEditor from "./CodeEditor";
 
-function Code() {
+
+function LogixExplorer() {
   const [editorContent, setEditorContent] = useState(
     localStorage.getItem("editorContent") || ""
   );
@@ -50,7 +51,7 @@ function Code() {
         setActiveFile={setActiveFile}
       />
 
-      <CodeExplanationPage
+      <CodeEditor
         editorContent={editorContent}
         setEditorContent={setEditorContent}
         fileName={fileName}
@@ -63,4 +64,4 @@ function Code() {
   );
 }
 
-export default Code;
+export default LogixExplorer;
