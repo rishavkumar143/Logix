@@ -115,6 +115,8 @@ const Navbar = ({
   };
 
 
+  //Explanation API call
+
   const handleExplainCode = async () => {
   if (!window.monacoEditor) {
     alert("No code found!");
@@ -175,8 +177,10 @@ const Navbar = ({
 
       const reader = new FileReader();
       reader.onload = () => {
-        openSingleFile(data.filename, data.preview.trim());
-      };
+      const fullContent = reader.result;
+      openSingleFile(data.filename, fullContent);
+    };
+
 
       reader.readAsText(file);
       resetUI();
