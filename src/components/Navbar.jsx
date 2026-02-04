@@ -2,6 +2,31 @@ import React, { useState, useEffect, useRef } from "react";
 import { FaCaretRight } from "react-icons/fa";
 import axios from "axios";
 import { baseUrl } from "../baseUrl";
+import { baseUrl_1 } from "../baseUrl";
+import { baseUrl_2 } from "../baseUrl";
+import Hierarchy from "./Hirearchy";
+import GenerateReport from "./GenerateReport";
+import Schematic from "./Schematic";
+
+
+// const Modal = ({ open, onClose, children }) => {
+//   if (!open) return null;
+
+//   return (
+//     <div className="fixed inset-0 bg-black/60 z-[9999] flex items-center justify-center">
+//       <div className="bg-[#0f0f0f] w-[90%] max-w-6xl rounded shadow-lg relative">
+//         <button
+//           onClick={onClose}
+//           className="absolute top-2 right-3 text-gray-400 hover:text-white"
+//         >
+//           ✕
+//         </button>
+//         {children}
+//       </div>
+//     </div>
+//   );
+// };
+
 
 const Navbar = ({
   setEditorContent,
@@ -16,6 +41,10 @@ const Navbar = ({
   const menuRef = useRef(null);
 
   const [zoom, setZoom] = useState(14);
+  const [ showReport, setShowReport] = useState(false);
+  const [showSchematic, setShowSchematic] = useState(false);
+  const [showHierarchy, setShowHierarchy] = useState(false);
+
 
   const [recentFiles, setRecentFiles] = useState(
     JSON.parse(localStorage.getItem("recentFiles")) || []
@@ -117,33 +146,49 @@ const Navbar = ({
 
   //Explanation API call
 
-  const handleExplainCode = async () => {
+const handleExplainCode = async () => {
   if (!window.monacoEditor) {
-    alert("No code found!");
+    alert("Editor not ready");
     return;
   }
 
   const code = window.monacoEditor.getValue();
 
   if (!code.trim()) {
-    alert("Code is empty!");
+    alert("Code is empty");
     return;
   }
 
   try {
     const res = await axios.post(
-      `${baseUrl}/explain`,
-      { code }
+      `${baseUrl_2}/explain/`,
+      {
+        text: code,   // 🔥 VERY IMPORTANT
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
     );
 
-    if (res.data?.explanation) {
-      window.setExplanationFromAPI(res.data.explanation);
-    } else {
-      window.setExplanationFromAPI("No explanation received");
+    console.log("Explain API response:", res.data);
+
+    const explanation =
+      res.data?.explanation ||
+      res.data?.response ||
+      res.data?.result ||
+      JSON.stringify(res.data, null, 2);
+
+    if (window.setExplanationFromAPI) {
+      window.setExplanationFromAPI(explanation);
     }
-  } catch (err) {
-    console.error(err);
-    window.setExplanationFromAPI("Error while explaining code");
+  } catch (error) {
+    console.error("Explain API failed:", error.response || error.message);
+
+    if (window.setExplanationFromAPI) {
+      window.setExplanationFromAPI("❌ Explain API failed");
+    }
   }
 };
 
@@ -166,7 +211,8 @@ const Navbar = ({
     formData.append("file", file);
 
     try {
-      const response = await axios.post(`${baseUrl}/upload`, formData);
+      const response = await axios.post
+      (`${baseUrl_1}/upload/file/`, formData);
 
       if (!response.status) {
         alert("Failed to fetch Data");
@@ -184,9 +230,6 @@ const Navbar = ({
 
       reader.readAsText(file);
       resetUI();
-
-      // console.log("Upload success:", response.data.filename);
-      // console.log("Upload success:", response.data.preview);
     } catch (err) {
       console.error("Upload failed:", err.response?.data || err.message);
     }
@@ -194,51 +237,70 @@ const Navbar = ({
 
 
   /* -------------------- FOLDER OPEN -------------------- */
-
   const handleFolderUpload = async (e) => {
-    const files = Array.from(e.target.files);
+  const files = Array.from(e.target.files);
 
-    const filtered = await Promise.all(
-      files
-        .filter((f) => /\.(v|sv)$/i.test(f.name))
-        .map(async (f) => ({
-          name: f.name,
-          path: f.webkitRelativePath,
-          content: await f.text(),
-        }))
+  const filtered = await Promise.all(
+    files
+      .filter((f) => /\.(v|sv)$/i.test(f.name))
+      .map(async (f) => ({
+        name: f.name,
+        path: f.webkitRelativePath,
+        content: await f.text(),
+      }))
+  );
+
+  if (!filtered.length) {
+    alert("⚠ No Verilog files found!");
+    return;
+  }
+
+  try {
+    const formData = new FormData();
+
+    filtered.forEach((file) => {
+      const blob = new Blob([file.content], { type: "text/plain" });
+      formData.append("files", blob, file.path);
+    });
+
+    await axios.post(
+      `${baseUrl_1}/upload/folder/`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
     );
+  } catch (err) {
+    console.error(err);
+    alert("❌ Folder upload failed");
+    return;
+  }
 
-    if (!filtered.length) {
-      alert("⚠ No Verilog files found!");
-      return;
-    }
+  setProjectFiles(filtered);
+  setActiveFile(0);
+  setFileName(filtered[0].name);
+  setEditorContent(filtered[0].content);
 
-    setProjectFiles(filtered);
-    setActiveFile(0);
-    setFileName(filtered[0].name);
-    setEditorContent(filtered[0].content);
+  localStorage.setItem("projectFiles", JSON.stringify(filtered));
+  localStorage.setItem("activeFile", "0");
+  localStorage.removeItem("fileName");
+  localStorage.removeItem("editorContent");
 
-    localStorage.setItem("projectFiles", JSON.stringify(filtered));
-    localStorage.setItem("activeFile", "0");
-    localStorage.removeItem("fileName");
-    localStorage.removeItem("editorContent");
+  saveToRecent(filtered[0].name, filtered[0].content);
+  resetUI();
+};
 
-    // ADD FIRST FILE TO RECENT TOO
-    saveToRecent(filtered[0].name, filtered[0].content);
-
-    resetUI();
-  };
 
   //Copy Explanation API Starts
-  
 const handleCopyExplanation = async () => {
-  // Explanation editor must exist
   if (!window.monacoExplanationEditor) {
     alert("Explanation editor not ready");
     return;
   }
 
-  // Read CURRENT content from editor (including user edits)
+  // Read current content from editor
   const explanationText = window.monacoExplanationEditor.getValue();
 
   if (!explanationText || !explanationText.trim()) {
@@ -251,30 +313,50 @@ const handleCopyExplanation = async () => {
 
     alert("Explanation copied successfully");
   } catch (err) {
-    console.error("Copy Explanation error:", err.message);
+    console.error("Copy Explanation error:", err);
+    alert("Copy failed");
   }
 };
 
   /* -------------------- CLEAR ALL -------------------- */
+const clearAll = async () => {
+  try {
+    await axios.post(
+      `${baseUrl_2}/clear/`,
+      {},
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
-  const clearAll = () => {
+    console.log("Backend clear API called successfully");
+  } catch (error) {
+    console.error(
+      "Clear API failed:",
+      error.response?.data || error.message
+    );
+  }
+
   localStorage.clear();
   setEditorContent("");
   setFileName("");
   setProjectFiles([]);
   setActiveFile(null);
 
-  setRecentFiles([]);
-  localStorage.setItem("recentFiles", JSON.stringify([]));
+  if (window.monacoEditor) {
+    window.monacoEditor.setValue("");
+  }
 
-  // ADD THIS (EXPLANATION CLEAR)
   if (window.setExplanationFromAPI) {
     window.setExplanationFromAPI("");
   }
-  if (window.setTestbenchFromAPI) {
-  window.setTestbenchFromAPI("");
-}
-localStorage.removeItem("testbench-blank");
+  // if (window.setTestbenchFromAPI) {
+  //   window.setTestbenchFromAPI("");
+  // }
+
+  // localStorage.removeItem("testbench-blank");
 
   resetUI();
 };
@@ -423,39 +505,47 @@ localStorage.removeItem("testbench-blank");
                     {key === "generate" && (
                       <>
                         <li
-  className={rowStyle}
-  onClick={async () => {
-    // 1️⃣ CLICK PE PEHLE TESTBENCH BLANK
-    if (window.setTestbenchFromAPI) {
-      window.setTestbenchFromAPI("");
-    }
+                          className={rowStyle}
+                          // onClick={async () => {
+                          //   if (window.setTestbenchFromAPI) {
+                          //     window.setTestbenchFromAPI("");
+                          //   }
+                          //   try {
+                          //     const res = await axios.post(
+                          //       `${baseUrl}/testbench/uvm`,
+                          //       {
+                          //         code: window.monacoEditor?.getValue() || "",
+                          //       },{
+                          //         header : {
+                          //           "content-Type" : "application/json"
+                          //         }
+                          //       }
+                          //     );
+                          //     const output =
+                          //       typeof res.data === "string"
+                          //         ? res.data
+                          //         : res.data?.testbench ||
+                          //           res.data?.result ||
+                          //           res.data?.output ||
+                          //           JSON.stringify(res.data, null, 2);
 
-    try {
-      // 2️⃣ API CALL
-      const res = await axios.post(
-        "https://python.verifplay.com/api/uvm",
-        {
-          code: window.monacoEditor?.getValue() || "",
-        }
-      );
+                          //     window.setTestbenchFromAPI(output);
+                          //   } catch (err) {
+                          //     window.setTestbenchFromAPI("// Error generating testbench");
+                          //   }
 
-      // 3️⃣ SIRF API RESPONSE HI SHOW HO
-      window.setTestbenchFromAPI(
-        res.data?.testbench || "// No testbench generated"
-      );
-    } catch (err) {
-      window.setTestbenchFromAPI("// Error generating testbench");
-    }
-
-    setMenu({ open: null, recent: false });
-  }}
->
-  Generate APB/UVM Testbench
-</li>
-
+                          //   setMenu({ open: null, recent: false });
+                          // }}
+                          >
+                          Generate APB/UVM Testbench
+                        </li>
 
                         <li className={rowStyle}>Generate AXI Testbench</li>
-                        <li className={rowStyle}>Generate Report</li>
+
+                        {/* GENERATE REPORT */}
+                        <li className={rowStyle} onClick={()=>{setShowReport(true);
+                          setMenu({open:null, recent:false})
+                        }}>Generate Report</li>
                         <li className="border-t border-gray-300 my-1"></li>
                         <li className={rowStyle}>Include Header Preview</li>
                       </>
@@ -464,17 +554,34 @@ localStorage.removeItem("testbench-blank");
                     {/* ================= GENERATE VIEW ================= */}
                     {key === "generateview" && (
                       <>
-                      <li className={rowStyle}>Hierarchy View</li>
-                      <li className={rowStyle}>Schematic View</li>
-                      <li className={rowStyle}>Explain Gate Level Netlist</li>
+                        <li
+                          className={rowStyle}
+                          onClick={() => {
+                            setShowHierarchy(true);
+                            setMenu({ open: null, recent: false });
+                          }}
+                        >
+                          Hierarchy View
+                        </li>
+<li
+  className={rowStyle}
+  onClick={() => {
+    setShowSchematic(true);
+    setMenu({ open: null, recent: false });
+  }}
+>
+  Schematic View
+</li>
+                        {/* <li className={rowStyle}>Explain Gate Level Netlist</li> */}
                       </>
                     )}
+
 
                     {/* ================= HELP ================= */}
                     {key === "help" && (
                       <>
                         <li className={rowStyle}>Documentation</li>
-                        <li className={rowStyle}>About</li>
+                        {/* <li className={rowStyle}>About</li> */}
                       </>
                     )}
                   </ul>
@@ -532,6 +639,23 @@ localStorage.removeItem("testbench-blank");
         className="hidden"
         onChange={handleFolderUpload}
       />
+      {/* GENERATE REPORT POPUP */}
+      <GenerateReport
+        open={showReport}
+        onClose={() => setShowReport(false)}
+      />
+
+      {/* Schematic */}
+      <Schematic
+  open={showSchematic}
+  onClose={() => setShowSchematic(false)}
+/>
+
+<Hierarchy
+  open={showHierarchy}
+  onClose={() => setShowHierarchy(false)}
+/>
+
     </>
   );
 };

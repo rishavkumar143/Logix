@@ -17,9 +17,7 @@ const CodeEditor = ({
 
   /* ================= ACTIVE TAB ================= */
   const activeTabKey = `activeTab-${displayName || "blank"}`;
-  const [activeTab, setActiveTab] = useState(
-    localStorage.getItem(activeTabKey) || "code"
-  );
+  const [activeTab, setActiveTab] = useState("code");
 
   useEffect(() => {
     localStorage.setItem(activeTabKey, activeTab);
@@ -56,7 +54,9 @@ const CodeEditor = ({
   useEffect(() => {
     window.setExplanationFromAPI = (text) => {
       setExplanation(text);
+      if(text && text.trim()){
       setActiveTab("explanation");
+    }
     };
 
     window.setTestbenchFromAPI = (code) => {
@@ -64,10 +64,17 @@ const CodeEditor = ({
       setShowTestbenchTab(true);
       setActiveTab("testbench");
     };
+    window.resetTestBenchUI = () =>{
+      setTestbench("");
+      setShowTestbenchTab(false);
+      setActiveTab("code");
+      localStorage.removeItem(testbenchKey);
+    }
 
     return () => {
       delete window.setExplanationFromAPI;
       delete window.setTestbenchFromAPI;
+      delete window.resetTestBenchUI;
     };
   }, []);
 
@@ -128,7 +135,7 @@ const CodeEditor = ({
         >
           Code {displayName && <span className="text-sm">({displayName})</span>}
         </button>
-
+        {explanation && (
         <button
           onClick={() => setActiveTab("explanation")}
           className={`px-4 py-2 font-semibold ${
@@ -140,8 +147,8 @@ const CodeEditor = ({
           Explanation{" "}
           {displayName && <span className="text-sm">({displayName})</span>}
         </button>
-
-        {showTestbenchTab && (
+      )}
+        {/* {showTestbenchTab && (
           <button
             onClick={() => setActiveTab("testbench")}
             className={`px-4 py-2 font-semibold ${
@@ -153,7 +160,7 @@ const CodeEditor = ({
             Testbench{" "}
             {displayName && <span className="text-sm">({displayName})</span>}
           </button>
-        )}
+        )} */}
       </div>
 
       {/* ================= FILE DROPDOWN ================= */}
@@ -194,7 +201,9 @@ const CodeEditor = ({
             theme="vs-dark"
             value={editorContent}
             onMount={(e) => (window.monacoEditor = e)}
-            options={{ automaticLayout: true, wordWrap: "on" }}
+            options={{ automaticLayout: true, wordWrap: "on" ,
+              minimap: { enabled: false }, 
+            }}
           />
         )}
 
@@ -205,7 +214,9 @@ const CodeEditor = ({
             theme="vs-dark"
             value={explanation}
             onMount={(e) => (window.monacoExplanationEditor = e)}
-            options={{ automaticLayout: true, wordWrap: "on" }}
+            options={{ automaticLayout: true, wordWrap: "on",
+              minimap: { enabled: false }, 
+             }}
           />
         )}
 
@@ -216,7 +227,9 @@ const CodeEditor = ({
             theme="vs-dark"
             value={testbench}
             onMount={(e) => (window.monacoTestbenchEditor = e)}
-            options={{ automaticLayout: true, wordWrap: "on" }}
+            options={{ automaticLayout: true, wordWrap: "on",
+              minimap: { enabled: false }, 
+             }}
           />
         )}
       </div>
