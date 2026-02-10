@@ -57,12 +57,9 @@ const Hierarchy = ({ open, onClose }) => {
   const outputs = Array.isArray(moduleData.outputs) ? moduleData.outputs : [];
 
   return (
-    /* ================= POPUP BACKDROP ================= */
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[9999] flex items-center justify-center">
-      {/* ================= POPUP BOX ================= */}
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-xs z-[9999] flex items-center justify-center">
       <div className="w-[80%] h-[85vh] bg-black text-white rounded relative flex">
 
-        {/* ❌ CLOSE */}
         <button
           onClick={onClose}
           className="absolute top-3 right-4 hover:text-gray-400 text-white text-lg z-[9999]"
@@ -70,7 +67,6 @@ const Hierarchy = ({ open, onClose }) => {
           ✕
         </button>
 
-        {/* ================= SIDEBAR ================= */}
         <div className="w-[180px] bg-[#111] border-r border-[#222] p-4 overflow-y-auto">
           <div className="text-sm font-semibold text-gray-300 mb-3">
             Modules
@@ -92,9 +88,7 @@ const Hierarchy = ({ open, onClose }) => {
           </div>
         </div>
 
-        {/* ================= MAIN ================= */}
         <div className="flex-1 flex flex-col">
-          {/* Tabs */}
           <div className="flex gap-2 p-3 border-b border-[#222]">
             {[
               { key: "top", label: "Top Graph" },
@@ -115,7 +109,6 @@ const Hierarchy = ({ open, onClose }) => {
             ))}
           </div>
 
-          {/* Content */}
           <div className="flex-1 overflow-auto p-4">
             {activeTab === "top" && hierarchyData && (
               <div className="grid grid-cols-3 gap-10 place-items-center">
@@ -174,7 +167,6 @@ const Hierarchy = ({ open, onClose }) => {
               </div>
             )}
             
-
             {activeTab === "graph" && hierarchyData && (
               <pre className="text-xs text-gray-300">
                 {JSON.stringify(hierarchyData.hierarchy, null, 2)}

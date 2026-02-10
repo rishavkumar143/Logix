@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FaCaretRight } from "react-icons/fa";
 import axios from "axios";
-import { baseUrl } from "../baseUrl";
 import { baseUrl_1 } from "../baseUrl";
 import { baseUrl_2 } from "../baseUrl";
 import Hierarchy from "./Hirearchy";
@@ -69,7 +68,6 @@ const Navbar = ({
       window.removeEventListener("recentFilesUpdated", refreshRecent);
   }, []);
 
-  /* ZOOM */
   const applyZoom = (fontSize) => {
     if (window.monacoEditor) {
       window.monacoEditor.updateOptions({ fontSize });
@@ -105,7 +103,6 @@ const Navbar = ({
     return () => window.removeEventListener("keydown", keyHandler);
   }, [zoom]);
 
-  /* -------------------- FILE OPEN (SINGLE FILE) -------------------- */
 
   const openSingleFile = (name, content) => {
     setEditorContent(content);
@@ -142,7 +139,7 @@ const handleExplainCode = async () => {
     const res = await axios.post(
       `${baseUrl_2}/explain/`,
       {
-        text: code,   // 🔥 VERY IMPORTANT
+        text: code,
       },
       {
         headers: {
@@ -215,7 +212,6 @@ const handleExplainCode = async () => {
   };
 
 
-  /* -------------------- FOLDER OPEN -------------------- */
   const handleFolderUpload = async (e) => {
   const files = Array.from(e.target.files);
 
@@ -253,7 +249,7 @@ const handleExplainCode = async () => {
     );
   } catch (err) {
     console.error(err);
-    alert("❌ Folder upload failed");
+    alert("Folder upload failed");
     return;
   }
 

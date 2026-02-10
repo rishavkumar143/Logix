@@ -22,11 +22,9 @@ const Schematic = ({ open, onClose }) => {
   }, []);
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[9999] flex items-center justify-center">
-      {/* ================= POPUP BOX ================= */}
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-xs z-[9999] border border-white flex items-center justify-center">
       <div className="h-[85vh] w-[80%] bg-black text-white flex flex-col text-xs relative">
 
-        {/* ❌ FIXED CLOSE */}
         <button
           onClick={onClose}
           className="absolute top-1 right-4 hover:text-gray-400 text-white text-lg z-[9999]"
@@ -34,14 +32,12 @@ const Schematic = ({ open, onClose }) => {
           ✕
         </button>
 
-        {/* ================= Top Title ================= */}
         <div className="text-[14px] py-2 border-b text-sm font-semibold tracking-wide">
           <span className="ml-2">
             Block Schematic [GENERIC] - {fileName}
           </span>
         </div>
 
-        {/* ================= Main Area ================= */}
         <div className="flex-1 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-black to-zinc-950">
 
@@ -74,7 +70,6 @@ const Schematic = ({ open, onClose }) => {
           </div>
         </div>
 
-        {/* ================= Toolbar ================= */}
         <div className="border-t border-zinc-1000">
           <div className="flex gap-3 px-3 py-2">
             <ToolbarBtn label="Hide Toolbar" />
@@ -123,6 +118,7 @@ const Schematic = ({ open, onClose }) => {
             <ControlBtn icon={<CirclePlay size={14} />} label="Play Path" />
             <ControlBtn icon={<CirclePause size={14} />} label="Stop" />
             <ControlBtn icon={<CookingPot size={14} />} label="Reset" />
+            <ControlBtn icon={<CookingPot size={14} />} label="Analysis Path" />
 
             <div className="font-semibold text-[14px] flex items-center">
               <input type="checkbox" className="ml-2 mr-2" />
@@ -135,7 +131,6 @@ const Schematic = ({ open, onClose }) => {
           </div>
         </div>
 
-        {/* ================= Bottom Info ================= */}
         <div className="border-t border-zinc-800 h-[140px] overflow-y-auto p-3 text-[11px] text-zinc-300">
           <div className="font-semibold mb-1">SELECTION GUIDE</div>
           <ul className="list-disc pl-4 space-y-1"></ul>
