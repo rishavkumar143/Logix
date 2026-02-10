@@ -58,14 +58,14 @@ const Hierarchy = ({ open, onClose }) => {
 
   return (
     /* ================= POPUP BACKDROP ================= */
-    <div className="fixed inset-0 bg-black/70 z-[9999] flex items-center justify-center">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[9999] flex items-center justify-center">
       {/* ================= POPUP BOX ================= */}
-      <div className="w-[95%] h-[90vh] bg-black text-white rounded relative flex">
+      <div className="w-[80%] h-[85vh] bg-black text-white rounded relative flex">
 
         {/* ❌ CLOSE */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-4 text-gray-400 hover:text-white text-lg z-[9999]"
+          className="absolute top-3 right-4 hover:text-gray-400 text-white text-lg z-[9999]"
         >
           ✕
         </button>
@@ -145,7 +145,7 @@ const Hierarchy = ({ open, onClose }) => {
                       {inputs.map((i, idx) => (
                         <div key={idx}>{i}</div>
                       ))}
-                      <div>============</div>
+                      <div>=================</div>
 
                     </div>
 
@@ -156,7 +156,7 @@ const Hierarchy = ({ open, onClose }) => {
                       {signals.map((s, idx) => (
                         <div key={idx}>{s}</div>
                       ))}
-                      <div>------------</div>
+                      <div>=================</div>
 
                     </div>
 
@@ -165,7 +165,7 @@ const Hierarchy = ({ open, onClose }) => {
                       {outputs.map((o, idx) => (
                         <div key={idx}>{o}</div>
                       ))}
-                      <div>------------</div>
+                      <div>-----------------</div>
                     </div>
                   </>
                 ) : (

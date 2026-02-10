@@ -34,21 +34,21 @@ const CodeEditor = ({
   }, [explanation, explanationKey]);
 
   /* ================= TESTBENCH ================= */
-  const testbenchKey = `testbench-${displayName || "blank"}`;
+  // const testbenchKey = `testbench-${displayName || "blank"}`;
 
-  const [testbench, setTestbench] = useState(
-    localStorage.getItem(testbenchKey) || ""
-  );
+  // const [testbench, setTestbench] = useState(
+  //   localStorage.getItem(testbenchKey) || ""
+  // );
 
-  const [showTestbenchTab, setShowTestbenchTab] = useState(
-    !!localStorage.getItem(testbenchKey)
-  );
+  // const [showTestbenchTab, setShowTestbenchTab] = useState(
+  //   !!localStorage.getItem(testbenchKey)
+  // );
 
-  useEffect(() => {
-    if (showTestbenchTab) {
-      localStorage.setItem(testbenchKey, testbench);
-    }
-  }, [testbench, testbenchKey, showTestbenchTab]);
+  // useEffect(() => {
+  //   if (showTestbenchTab) {
+  //     localStorage.setItem(testbenchKey, testbench);
+  //   }
+  // }, [testbench, testbenchKey, showTestbenchTab]);
 
   /* ================= GLOBAL API SETTERS ================= */
   useEffect(() => {
@@ -59,17 +59,17 @@ const CodeEditor = ({
     }
     };
 
-    window.setTestbenchFromAPI = (code) => {
-      setTestbench(code);
-      setShowTestbenchTab(true);
-      setActiveTab("testbench");
-    };
-    window.resetTestBenchUI = () =>{
-      setTestbench("");
-      setShowTestbenchTab(false);
-      setActiveTab("code");
-      localStorage.removeItem(testbenchKey);
-    }
+    // window.setTestbenchFromAPI = (code) => {
+    //   setTestbench(code);
+    //   setShowTestbenchTab(true);
+    //   setActiveTab("testbench");
+    // };
+    // window.resetTestBenchUI = () =>{
+    //   setTestbench("");
+    //   setShowTestbenchTab(false);
+    //   setActiveTab("code");
+    //   localStorage.removeItem(testbenchKey);
+    // }
 
     return () => {
       delete window.setExplanationFromAPI;
@@ -84,7 +84,7 @@ const CodeEditor = ({
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setShowDropdown(false);
       }
-    };
+    };  
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);

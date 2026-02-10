@@ -22,16 +22,14 @@ const Schematic = ({ open, onClose }) => {
   }, []);
 
   return (
-    /* ================= POPUP BACKDROP ================= */
-    <div className="fixed inset-0 bg-black/70 z-[9999] flex items-center justify-center">
-
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[9999] flex items-center justify-center">
       {/* ================= POPUP BOX ================= */}
-      <div className="h-[700px] w-[95%] bg-black text-white flex flex-col text-xs relative">
+      <div className="h-[85vh] w-[80%] bg-black text-white flex flex-col text-xs relative">
 
         {/* ❌ FIXED CLOSE */}
         <button
           onClick={onClose}
-          className="absolute top-1 right-4 text-gray-400 hover:text-white text-lg z-[9999]"
+          className="absolute top-1 right-4 hover:text-gray-400 text-white text-lg z-[9999]"
         >
           ✕
         </button>

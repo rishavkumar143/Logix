@@ -8,26 +8,6 @@ import Hierarchy from "./Hirearchy";
 import GenerateReport from "./GenerateReport";
 import Schematic from "./Schematic";
 
-
-// const Modal = ({ open, onClose, children }) => {
-//   if (!open) return null;
-
-//   return (
-//     <div className="fixed inset-0 bg-black/60 z-[9999] flex items-center justify-center">
-//       <div className="bg-[#0f0f0f] w-[90%] max-w-6xl rounded shadow-lg relative">
-//         <button
-//           onClick={onClose}
-//           className="absolute top-2 right-3 text-gray-400 hover:text-white"
-//         >
-//           ✕
-//         </button>
-//         {children}
-//       </div>
-//     </div>
-//   );
-// };
-
-
 const Navbar = ({
   setEditorContent,
   setFileName,
@@ -131,7 +111,6 @@ const Navbar = ({
     setEditorContent(content);
     setFileName(name);
 
-    // SINGLE FILE MODE → REMOVE FOLDER CONTEXT
     setProjectFiles([]);
     setActiveFile(null);
 
@@ -207,7 +186,7 @@ const handleExplainCode = async () => {
       return;
     }
 
-    const formData = new FormData(); // ✅ correct
+    const formData = new FormData();
     formData.append("file", file);
 
     try {
@@ -321,20 +300,11 @@ const handleCopyExplanation = async () => {
   /* -------------------- CLEAR ALL -------------------- */
 const clearAll = async () => {
   try {
-    await axios.post(
-      `${baseUrl_2}/clear/`,
-      {},
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    console.log("Backend clear API called successfully");
+    await axios.delete(`${baseUrl_1}/clear/`);
+    console.log("✅ Backend clear success");
   } catch (error) {
     console.error(
-      "Clear API failed:",
+      "❌ Clear API failed:",
       error.response?.data || error.message
     );
   }
@@ -348,23 +318,15 @@ const clearAll = async () => {
   if (window.monacoEditor) {
     window.monacoEditor.setValue("");
   }
-
   if (window.setExplanationFromAPI) {
     window.setExplanationFromAPI("");
   }
-  // if (window.setTestbenchFromAPI) {
-  //   window.setTestbenchFromAPI("");
-  // }
-
-  // localStorage.removeItem("testbench-blank");
 
   resetUI();
 };
 
 
   const handleExit = () => clearAll();
-
-  /* UI STYLES */
 
   const rowStyle =
     "flex justify-between px-3 py-[6px] text-[13px] hover:bg-[#0078d4] hover:text-white cursor-pointer";
