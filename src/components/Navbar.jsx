@@ -20,13 +20,12 @@ const Navbar = ({
   const menuRef = useRef(null);
 
   const [zoom, setZoom] = useState(14);
-  const [ showReport, setShowReport] = useState(false);
+  const [showReport, setShowReport] = useState(false);
   const [showSchematic, setShowSchematic] = useState(false);
   const [showHierarchy, setShowHierarchy] = useState(false);
 
-
   const [recentFiles, setRecentFiles] = useState(
-    JSON.parse(localStorage.getItem("recentFiles")) || []
+    JSON.parse(localStorage.getItem("recentFiles")) || [],
   );
 
   const saveToRecent = (name, content) => {
@@ -103,7 +102,6 @@ const Navbar = ({
     return () => window.removeEventListener("keydown", keyHandler);
   }, [zoom]);
 
-
   const openSingleFile = (name, content) => {
     setEditorContent(content);
     setFileName(name);
@@ -119,55 +117,53 @@ const Navbar = ({
     saveToRecent(name, content);
   };
 
-
   //Explanation API call
 
-const handleExplainCode = async () => {
-  if (!window.monacoEditor) {
-    alert("Editor not ready");
-    return;
-  }
+  const handleExplainCode = async () => {
+    if (!window.monacoEditor) {
+      alert("Editor not ready");
+      return;
+    }
 
-  const code = window.monacoEditor.getValue();
+    const code = window.monacoEditor.getValue();
 
-  if (!code.trim()) {
-    alert("Code is empty");
-    return;
-  }
+    if (!code.trim()) {
+      alert("Code is empty");
+      return;
+    }
 
-  try {
-    const res = await axios.post(
-      `${baseUrl_2}/explain/`,
-      {
-        text: code,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
+    try {
+      const res = await axios.post(
+        `${baseUrl_2}/explain/`,
+        {
+          text: code,
         },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      console.log("Explain API response:", res.data);
+
+      const explanation =
+        res.data?.explanation ||
+        res.data?.response ||
+        res.data?.result ||
+        JSON.stringify(res.data, null, 2);
+
+      if (window.setExplanationFromAPI) {
+        window.setExplanationFromAPI(explanation);
       }
-    );
+    } catch (error) {
+      console.error("Explain API failed:", error.response || error.message);
 
-    console.log("Explain API response:", res.data);
-
-    const explanation =
-      res.data?.explanation ||
-      res.data?.response ||
-      res.data?.result ||
-      JSON.stringify(res.data, null, 2);
-
-    if (window.setExplanationFromAPI) {
-      window.setExplanationFromAPI(explanation);
+      if (window.setExplanationFromAPI) {
+        window.setExplanationFromAPI("Explain API failed");
+      }
     }
-  } catch (error) {
-    console.error("Explain API failed:", error.response || error.message);
-
-    if (window.setExplanationFromAPI) {
-      window.setExplanationFromAPI("❌ Explain API failed");
-    }
-  }
-};
-
+  };
 
   //Load File API Call Start
 
@@ -187,8 +183,7 @@ const handleExplainCode = async () => {
     formData.append("file", file);
 
     try {
-      const response = await axios.post
-      (`${baseUrl_1}/upload/file/`, formData);
+      const response = await axios.post(`${baseUrl_1}/upload/file/`, formData);
 
       if (!response.status) {
         alert("Failed to fetch Data");
@@ -199,10 +194,9 @@ const handleExplainCode = async () => {
 
       const reader = new FileReader();
       reader.onload = () => {
-      const fullContent = reader.result;
-      openSingleFile(data.filename, fullContent);
-    };
-
+        const fullContent = reader.result;
+        openSingleFile(data.filename, fullContent);
+      };
 
       reader.readAsText(file);
       resetUI();
@@ -211,116 +205,106 @@ const handleExplainCode = async () => {
     }
   };
 
-
   const handleFolderUpload = async (e) => {
-  const files = Array.from(e.target.files);
+    const files = Array.from(e.target.files);
 
-  const filtered = await Promise.all(
-    files
-      .filter((f) => /\.(v|sv)$/i.test(f.name))
-      .map(async (f) => ({
-        name: f.name,
-        path: f.webkitRelativePath,
-        content: await f.text(),
-      }))
-  );
+    const filtered = await Promise.all(
+      files
+        .filter((f) => /\.(v|sv)$/i.test(f.name))
+        .map(async (f) => ({
+          name: f.name,
+          path: f.webkitRelativePath,
+          content: await f.text(),
+        })),
+    );
 
-  if (!filtered.length) {
-    alert("⚠ No Verilog files found!");
-    return;
-  }
+    if (!filtered.length) {
+      alert("⚠ No Verilog files found!");
+      return;
+    }
 
-  try {
-    const formData = new FormData();
+    try {
+      const formData = new FormData();
 
-    filtered.forEach((file) => {
-      const blob = new Blob([file.content], { type: "text/plain" });
-      formData.append("files", blob, file.path);
-    });
+      filtered.forEach((file) => {
+        const blob = new Blob([file.content], { type: "text/plain" });
+        formData.append("files", blob, file.path);
+      });
 
-    await axios.post(
-      `${baseUrl_1}/upload/folder/`,
-      formData,
-      {
+      await axios.post(`${baseUrl_1}/upload/folder/`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
-      }
-    );
-  } catch (err) {
-    console.error(err);
-    alert("Folder upload failed");
-    return;
-  }
+      });
+    } catch (err) {
+      console.error(err);
+      alert("Folder upload failed");
+      return;
+    }
 
-  setProjectFiles(filtered);
-  setActiveFile(0);
-  setFileName(filtered[0].name);
-  setEditorContent(filtered[0].content);
+    setProjectFiles(filtered);
+    setActiveFile(0);
+    setFileName(filtered[0].name);
+    setEditorContent(filtered[0].content);
 
-  localStorage.setItem("projectFiles", JSON.stringify(filtered));
-  localStorage.setItem("activeFile", "0");
-  localStorage.removeItem("fileName");
-  localStorage.removeItem("editorContent");
+    localStorage.setItem("projectFiles", JSON.stringify(filtered));
+    localStorage.setItem("activeFile", "0");
+    localStorage.removeItem("fileName");
+    localStorage.removeItem("editorContent");
 
-  saveToRecent(filtered[0].name, filtered[0].content);
-  resetUI();
-};
-
+    saveToRecent(filtered[0].name, filtered[0].content);
+    resetUI();
+  };
 
   //Copy Explanation API Starts
-const handleCopyExplanation = async () => {
-  if (!window.monacoExplanationEditor) {
-    alert("Explanation editor not ready");
-    return;
-  }
+  const handleCopyExplanation = async () => {
+    if (!window.monacoExplanationEditor) {
+      alert("Explanation editor not ready");
+      return;
+    }
 
-  // Read current content from editor
-  const explanationText = window.monacoExplanationEditor.getValue();
+    // Read current content from editor
+    const explanationText = window.monacoExplanationEditor.getValue();
 
-  if (!explanationText || !explanationText.trim()) {
-    alert("Nothing to copy");
-    return;
-  }
+    if (!explanationText || !explanationText.trim()) {
+      alert("Nothing to copy");
+      return;
+    }
 
-  try {
-    await navigator.clipboard.writeText(explanationText);
+    try {
+      await navigator.clipboard.writeText(explanationText);
 
-    alert("Explanation copied successfully");
-  } catch (err) {
-    console.error("Copy Explanation error:", err);
-    alert("Copy failed");
-  }
-};
+      alert("Explanation copied successfully");
+    } catch (err) {
+      console.error("Copy Explanation error:", err);
+      alert("Copy failed");
+    }
+  };
 
   /* -------------------- CLEAR ALL -------------------- */
-const clearAll = async () => {
-  try {
-    await axios.delete(`${baseUrl_1}/clear/`);
-    console.log("✅ Backend clear success");
-  } catch (error) {
-    console.error(
-      "❌ Clear API failed:",
-      error.response?.data || error.message
-    );
-  }
+  const clearAll = async () => {
+    try {
+      await axios.delete(`${baseUrl_1}/clear/`);
+      console.log("Backend clear success");
+    } catch (error) {
+      console.error("Clear API failed:", error.response?.data || error.message);
+    }
 
-  localStorage.clear();
-  setEditorContent("");
-  setFileName("");
-  setProjectFiles([]);
-  setActiveFile(null);
+    localStorage.clear();
+    setEditorContent("");
+    setFileName("");
+    setProjectFiles([]);
+    setActiveFile(null);
 
-  if (window.monacoEditor) {
-    window.monacoEditor.setValue("");
-  }
-  if (window.setExplanationFromAPI) {
-    window.setExplanationFromAPI("");
-  }
+    if (window.monacoEditor) {
+      window.monacoEditor.setValue("");
+    }
+    if (window.setExplanationFromAPI) {
+      window.setExplanationFromAPI("");
+    }
 
-  resetUI();
-};
-
+    resetUI();
+  };
 
   const handleExit = () => clearAll();
 
@@ -333,7 +317,7 @@ const clearAll = async () => {
         ref={menuRef}
         className="bg-white border-b border-gray-300 h-7 flex items-center px-3 gap-5 text-[13px] select-none"
       >
-        {["File", "Edit", "View", "Generate", "Generate View", "Help"].map(
+        {["File", "Edit", "View", "Analyze", "Visualization", "Help"].map(
           (label) => {
             const key = label.toLowerCase().replace(" ", "");
 
@@ -460,7 +444,7 @@ const clearAll = async () => {
                       </>
                     )}
                     {/* ================= GENERATE ================= */}
-                    {key === "generate" && (
+                    {key === "analyze" && (
                       <>
                         <li
                           className={rowStyle}
@@ -494,23 +478,29 @@ const clearAll = async () => {
 
                           //   setMenu({ open: null, recent: false });
                           // }}
-                          >
+                        >
                           Generate APB/UVM Testbench
                         </li>
 
                         <li className={rowStyle}>Generate AXI Testbench</li>
 
                         {/* GENERATE REPORT */}
-                        <li className={rowStyle} onClick={()=>{setShowReport(true);
-                          setMenu({open:null, recent:false})
-                        }}>Generate Report</li>
+                        <li
+                          className={rowStyle}
+                          onClick={() => {
+                            setShowReport(true);
+                            setMenu({ open: null, recent: false });
+                          }}
+                        >
+                          Generate Report
+                        </li>
                         <li className="border-t border-gray-300 my-1"></li>
                         <li className={rowStyle}>Include Header Preview</li>
                       </>
                     )}
 
                     {/* ================= GENERATE VIEW ================= */}
-                    {key === "generateview" && (
+                    {key === "visualization" && (
                       <>
                         <li
                           className={rowStyle}
@@ -521,19 +511,18 @@ const clearAll = async () => {
                         >
                           Hierarchy View
                         </li>
-<li
-  className={rowStyle}
-  onClick={() => {
-    setShowSchematic(true);
-    setMenu({ open: null, recent: false });
-  }}
->
-  Schematic View
-</li>
+                        <li
+                          className={rowStyle}
+                          onClick={() => {
+                            setShowSchematic(true);
+                            setMenu({ open: null, recent: false });
+                          }}
+                        >
+                          Schematic View
+                        </li>
                         {/* <li className={rowStyle}>Explain Gate Level Netlist</li> */}
                       </>
                     )}
-
 
                     {/* ================= HELP ================= */}
                     {key === "help" && (
@@ -546,7 +535,7 @@ const clearAll = async () => {
                 )}
               </div>
             );
-          }
+          },
         )}
       </nav>
 
@@ -598,24 +587,18 @@ const clearAll = async () => {
         onChange={handleFolderUpload}
       />
       {/* GENERATE REPORT POPUP */}
-      <GenerateReport
-        open={showReport}
-        onClose={() => setShowReport(false)}
-      />
+      <GenerateReport open={showReport} onClose={() => setShowReport(false)} />
 
       {/* Schematic */}
-      <Schematic
-  open={showSchematic}
-  onClose={() => setShowSchematic(false)}
-/>
+      <Schematic open={showSchematic} onClose={() => setShowSchematic(false)} />
 
-<Hierarchy
-  open={showHierarchy}
-  onClose={() => setShowHierarchy(false)}
-/>
-
+      <Hierarchy open={showHierarchy} onClose={() => setShowHierarchy(false)} />
     </>
   );
 };
 
 export default Navbar;
+
+
+
+// https://python.verifplay.com/schematic/
