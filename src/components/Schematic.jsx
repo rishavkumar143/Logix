@@ -54,14 +54,11 @@ const Schematic = ({ open, onClose }) => {
         </button>
 
         <div className="text-[14px] py-2 border-b font-semibold">
-          <span className="ml-2">
-            Block Schematic [GENERIC] - {fileName}
-          </span>
+          <span className="ml-2">Block Schematic [GENERIC] - {fileName}</span>
         </div>
 
         <div className="flex-1 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-black to-zinc-950">
-
             {loading && (
               <div className="absolute inset-0 flex items-center justify-center">
                 <Loader size="3.5em" />
@@ -168,7 +165,7 @@ const Schematic = ({ open, onClose }) => {
                 <ControlBtn icon={<CirclePlay size={14} />} label="Play Path" />
                 <ControlBtn icon={<CirclePause size={14} />} label="Stop" />
                 <ControlBtn icon={<CookingPot size={14} />} label="Reset" />
-                <ControlBtn icon={<CookingPot size={14} />} label="Analyze Path" />
+                <ControlBtn label="Analyze Path" />
 
                 <div className="ml-auto">
                   <ControlBtn label="Close" onClick={onClose} />
@@ -189,10 +186,18 @@ const Schematic = ({ open, onClose }) => {
 
               <div className="font-black mt-4 mb-1">PATH TYPE TIPS</div>
               <ul className="list-disc pl-4 space-y-1">
-                <li><b>DATA</b> : Data flow only</li>
-                <li><b>CLOCK</b> : Clock paths</li>
-                <li><b>CONTROL</b> : FSM & enable paths</li>
-                <li><b>ALL</b> : Combined view</li>
+                <li>
+                  <b>DATA</b> : Data flow only
+                </li>
+                <li>
+                  <b>CLOCK</b> : Clock paths
+                </li>
+                <li>
+                  <b>CONTROL</b> : FSM & enable paths
+                </li>
+                <li>
+                  <b>ALL</b> : Combined view
+                </li>
               </ul>
             </div>
           )}
@@ -205,7 +210,7 @@ const Schematic = ({ open, onClose }) => {
 const ToolbarBtn = ({ label, onClick }) => (
   <button
     onClick={onClick}
-    className="px-3 py-2 bg-cyan-700 hover:bg-cyan-600 text-white text-[14px] cursor-pointer"
+    className="px-3 py-2 bg-cyan-600 hover:bg-cyan-900 text-white text-[14px] cursor-pointer"
   >
     {label}
   </button>
@@ -221,7 +226,7 @@ const Legend = ({ color, label }) => (
 const ControlBtn = ({ icon, label, onClick }) => (
   <button
     onClick={onClick}
-    className="flex items-center gap-1 px-3 py-2 bg-cyan-700 hover:bg-cyan-600 text-white text-[14px] cursor-pointer"
+    className="flex items-center gap-1 px-3 py-2 bg-cyan-600 hover:bg-cyan-900 text-white text-[14px] cursor-pointer"
   >
     {icon}
     {label}
@@ -229,3 +234,247 @@ const ControlBtn = ({ icon, label, onClick }) => (
 );
 
 export default Schematic;
+
+
+
+
+
+
+
+
+// import React, { useEffect, useState } from "react";
+// import ReactFlow, { Background, useNodesState, useEdgesState } from "reactflow";
+// import "reactflow/dist/style.css";
+
+// import { CirclePlay, CirclePause, CookingPot } from "lucide-react";
+// import Loader from "./loader";
+
+// const Schematic = ({ open, onClose }) => {
+//   if (!open) return null;
+
+//   const [loading, setLoading] = useState(true);
+//   const [data, setData] = useState(null);
+//   const [fileName, setFileName] = useState("");
+
+//   const [fromNode, setFromNode] = useState(null);
+//   const [toNode, setToNode] = useState(null);
+//   const [pathType, setPathType] = useState("Data");
+
+//   // useEffect(() => {
+//   //   setTimeout(() => {
+//   //     setFileName("spi_slave_block.v");
+//   //     setData({ ok: true });
+//   //     setLoading(false);
+//   //   }, 800);
+//   // }, []);
+
+//   const [nodes, setNodes, onNodesChange] = useNodesState([]);
+//   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+
+//   useEffect(() => {
+//     const fetchSchematic = async () => {
+//       try {
+//         setLoading(true);
+
+//         const res = await fetch("https://python.verifplay.com/schematic/", {
+//           method: "POST",
+//           headers: {
+//             "Content-Type": "application/json",
+//           },
+//           body: JSON.stringify({
+//             file_name: "spi_slave_block.v",
+//           }),
+//         });
+
+//         const apiData = await res.json();
+//         console.log("API RESPONSE:", apiData);
+
+//         setFileName(apiData.file_name || "schematic.v");
+
+//         const mappedNodes = (apiData.modules || []).map((mod, index) => ({
+//           id: mod.id || `node-${index}`,
+//           position: {
+//             x: mod.x ?? index * 180 + 100,
+//             y: mod.y ?? 200,
+//           },
+//           data: { label: mod.label || mod.id },
+//           style: nodeStyle,
+//         }));
+
+//         const mappedEdges = (apiData.connections || []).map((conn, index) => ({
+//           id: `e-${index}`,
+//           source: conn.from,
+//           target: conn.to,
+//           type: "straight",
+//           style: edgeStyle,
+//         }));
+
+//         setNodes(mappedNodes);
+//         setEdges(mappedEdges);
+
+//         setData(apiData);
+//         setLoading(false);
+//       } catch (err) {
+//         console.error("API Error:", err);
+//         setLoading(false);
+//       }
+//     };
+
+//     if (open) {
+//       fetchSchematic();
+//     }
+//   }, [open]);
+
+//   const handlePlay = () => {
+//     const colorMap = {
+//       Data: "#22c55e",
+//       Clock: "#06b6d4",
+//       Control: "#a855f7",
+//       All: "#facc15",
+//     };
+
+//     setEdges((eds) =>
+//       eds.map((e) => ({
+//         ...e,
+//         animated: true,
+//         style: {
+//           stroke: colorMap[pathType],
+//           strokeWidth: 2,
+//         },
+//       })),
+//     );
+//   };
+
+//   const edgeStyle = {
+//     stroke: "#22d3ee",
+//     strokeWidth: 1.5,
+//   };
+
+//   const handleStop = () => {
+//     setEdges((eds) =>
+//       eds.map((e) => ({
+//         ...e,
+//         animated: false,
+//         style: edgeStyle,
+//       })),
+//     );
+//   };
+
+//   const handleReset = () => {
+//     setFromNode(null);
+//     setToNode(null);
+//     handleStop();
+//   };
+
+//   return (
+//     <div
+//       className="fixed inset-0 bg-black/70 backdrop-blur-xs z-[9999] flex items-center justify-center"
+//       onClick={onClose}
+//     >
+//       <div
+//         className="h-[85vh] w-[80%] bg-black text-white flex flex-col text-xs relative border border-white/70 rounded"
+//         onClick={(e) => e.stopPropagation()}
+//       >
+//         <button
+//           onClick={onClose}
+//           className="absolute top-1 right-4 hover:text-gray-400 text-white text-lg"
+//         >
+//           ✕
+//         </button>
+
+//         <div className="text-[14px] py-2 border-b font-semibold ml-2">
+//           Block Schematic [GENERIC] - {fileName}
+//         </div>
+
+//         <div className="flex-1 relative overflow-hidden bg-gradient-to-br from-black to-zinc-950">
+//           {loading && (
+//             <div className="absolute inset-0 flex items-center justify-center">
+//               <Loader size="3.5em" />
+//             </div>
+//           )}
+
+//           {!loading && data && (
+//             <ReactFlow
+//               nodes={nodes}
+//               edges={edges}
+//               onNodesChange={onNodesChange}
+//               onEdgesChange={onEdgesChange}
+//               fitView
+//               nodesDraggable={false}
+//               nodesConnectable={false}
+//               elementsSelectable={false}
+//               panOnDrag={false}
+//               zoomOnScroll={false}
+//               zoomOnPinch={false}
+//               proOptions={{ hideAttribution: true }}
+//             >
+//               <Background color="#0f172a" gap={25} />
+//             </ReactFlow>
+//           )}
+//         </div>
+
+//         <div className="border-t p-3">
+//           <div className="flex gap-2 mb-3">
+//             {["Data", "Clock", "Control", "All"].map((type) => (
+//               <button
+//                 key={type}
+//                 onClick={() => setPathType(type)}
+//                 className={`px-3 py-1 border ${
+//                   pathType === type ? "bg-cyan-600" : "bg-zinc-800"
+//                 }`}
+//               >
+//                 {type}
+//               </button>
+//             ))}
+//           </div>
+
+//           <div className="flex gap-2">
+//             <ControlBtn
+//               icon={<CirclePlay size={14} />}
+//               label="Play"
+//               onClick={handlePlay}
+//             />
+//             <ControlBtn
+//               icon={<CirclePause size={14} />}
+//               label="Stop"
+//               onClick={handleStop}
+//             />
+//             <ControlBtn
+//               icon={<CookingPot size={14} />}
+//               label="Reset"
+//               onClick={handleReset}
+//             />
+//             <ControlBtn label="Close" onClick={onClose} />
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// const nodeStyle = {
+//   background: "#1e293b",
+//   color: "#fff",
+//   border: "1px solid #00d4ff",
+//   padding: 8,
+//   width: 120,
+//   textAlign: "center",
+//   fontSize: "10px",
+// };
+
+// const nodeStyleSmall = {
+//   ...nodeStyle,
+//   width: 90,
+// };
+
+// const ControlBtn = ({ icon, label, onClick }) => (
+//   <button
+//     onClick={onClick}
+//     className="flex items-center gap-1 px-3 py-2 bg-cyan-600 hover:bg-cyan-900 text-white text-[13px]"
+//   >
+//     {icon}
+//     {label}
+//   </button>
+// );
+
+// export default Schematic;

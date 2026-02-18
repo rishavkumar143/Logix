@@ -3,7 +3,6 @@ import axios from "axios";
 import Loader from "./loader";
 import { baseUrl_2 } from "../baseUrl";
 
-
 const SummaryBox = ({ label, value }) => (
   <div className="bg-[#111] border border-gray-700 rounded p-3">
     <div className="text-gray-400 text-xs">{label}</div>
@@ -69,19 +68,21 @@ const GenerateReport = ({ open, onClose }) => {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[99999] flex items-center justify-center"
-    onClick={onClose}
+    <div
+      className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[99999] flex items-center justify-center"
+      onClick={onClose}
     >
-      <div className="w-[80%] h-[85vh] bg-[#0f0f0f] rounded border border-gray-600 flex flex-col border border-white/80 rounded"
-      onClick={(e)=>e.stopPropagation()}
+      <div
+        className="w-[80%] h-[85vh] bg-[#0f0f0f] rounded border border-gray-600 flex flex-col border border-white/80 rounded"
+        onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between px-4 py-2 border-b border-gray-600 bg-[#111]">
+        <div className="flex justify-between px-4 py-4 border-b border-gray-600 bg-[#111]">
           <div className="flex gap-2">
             {["design", "module"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-3 py-1 text-sm rounded cursor-pointer ${
+                className={`px-4 py-1.5 text-sm rounded-md cursor-pointer ${
                   activeTab === tab
                     ? "bg-[#0078d4] text-white"
                     : "bg-[#1e1e1e] text-gray-300"
@@ -91,7 +92,10 @@ const GenerateReport = ({ open, onClose }) => {
               </button>
             ))}
           </div>
-          <button onClick={onClose} className="text-white text-lg cursor-pointer">
+          <button
+            onClick={onClose}
+            className="text-white text-lg cursor-pointer"
+          >
             ✕
           </button>
         </div>

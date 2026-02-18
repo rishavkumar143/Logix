@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { baseUrl_1 } from "../baseUrl";
+import Loader from "./loader";
 
 const Hierarchy = ({ open, onClose }) => {
   const [activeTab, setActiveTab] = useState("top");
   const [hierarchyData, setHierarchyData] = useState(null);
   const [moduleDetails, setModuleDetails] = useState(null);
+  const [moduleGraph, setModuleGraph] = useState(null);
   const [internalSignals, setInternalSignals] = useState([]);
   const [selectedModule, setSelectedModule] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -33,39 +35,16 @@ const Hierarchy = ({ open, onClose }) => {
     setLoading(true);
 
     try {
-      const portsRes = await axios.post(
-        `${baseUrl_1}/parser/ports/`,
-        { module_name: moduleName },
+      const res = await axios.post(
+        `${baseUrl_1}/module/detail/`,
+        { module: moduleName },
         { headers: { "Content-Type": "application/json" } },
       );
 
-      const portsArray = Array.isArray(portsRes.data) ? portsRes.data : [];
+      const data = res.data || {};
 
-      const inputs = portsArray
-        .filter((p) => p.direction === "input")
-        .map((p) => p.name);
-
-      const outputs = portsArray
-        .filter((p) => p.direction === "output")
-        .map((p) => p.name);
-
-      setModuleDetails({ inputs, outputs });
-
-      const internalRes = await axios.post(
-        `${baseUrl_1}/parser/internal-signals/`,
-        { module_name: moduleName },
-        { headers: { "Content-Type": "application/json" } },
-      );
-
-      const internalData = internalRes.data || {};
-
-      const combinedSignals = [
-        ...(internalData.logic || []),
-        ...(internalData.reg || []),
-        ...(internalData.wire || []),
-      ];
-
-      setInternalSignals(combinedSignals);
+      setModuleDetails(data);
+      setInternalSignals(data.internal_signals || []);
     } catch (err) {
       setModuleDetails(null);
       setInternalSignals([]);
@@ -74,12 +53,28 @@ const Hierarchy = ({ open, onClose }) => {
     }
   };
 
+  const handleTopModuleClick = async (moduleName) => {
+    if (!moduleName) return;
+
+    setActiveTab("graph");
+    setLoading(true);
+
+    try {
+      const res = await axios.get(`${baseUrl_1}/module/graph/`, {
+        params: { module: moduleName },
+      });
+
+      setModuleGraph(res.data);
+    } catch (err) {
+      setModuleGraph(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!open) return null;
 
-  
   const modules = hierarchyData?.modules || hierarchyData?.data?.modules || [];
-  const inputs = moduleDetails?.inputs || [];
-  const outputs = moduleDetails?.outputs || [];
 
   return (
     <div
@@ -87,18 +82,18 @@ const Hierarchy = ({ open, onClose }) => {
       onClick={onClose}
     >
       <div
-        className="w-[85%] h-[85vh] bg-black text-white border border-white/60 rounded flex relative"
+        className="w-[80%] h-[85vh] bg-[#0f0f0f] text-white border border-[#222] rounded-xl flex relative shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute top-3 right-4 text-lg hover:text-gray-400 cursor-pointer"
+          className="absolute top-4 right-5 text-xl text-gray-400 hover:text-white transition"
         >
           ✕
         </button>
 
-        <div className="w-[250px] bg-[#111] border-r border-[#222] p-4 overflow-y-auto">
-          <div className="text-sm font-semibold text-gray-300 mb-3">
+        <div className="w-[260px] bg-[#111] border-r border-[#222] p-4 overflow-y-auto">
+          <div className="text-sm font-semibold text-gray-300 mb-4 uppercase tracking-wide">
             Modules
           </div>
 
@@ -107,10 +102,10 @@ const Hierarchy = ({ open, onClose }) => {
               <div
                 key={i}
                 onClick={() => handleModuleClick(m)}
-                className={`cursor-pointer mb-1 truncate ${
+                className={`cursor-pointer px-2 py-1 rounded text-sm mb-1 truncate transition ${
                   selectedModule === m
-                    ? "text-sky-400 font-semibold"
-                    : "text-gray-400 hover:text-sky-400"
+                    ? "bg-sky-600 text-white"
+                    : "text-gray-400 hover:bg-[#1a1a1a] hover:text-sky-400"
                 }`}
               >
                 {m}
@@ -122,7 +117,7 @@ const Hierarchy = ({ open, onClose }) => {
         </div>
 
         <div className="flex-1 flex flex-col">
-          <div className="flex gap-2 p-3 border-b border-[#222]">
+          <div className="flex gap-2 p-4 border-b border-[#222]">
             {[
               { key: "top", label: "Top Graph" },
               { key: "detail", label: "Module Detail" },
@@ -131,10 +126,10 @@ const Hierarchy = ({ open, onClose }) => {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`px-3 py-1 text-sm border cursor-pointer ${
+                className={`px-4 py-1.5 text-sm rounded-md transition ${
                   activeTab === tab.key
-                    ? "bg-blue-500 border-blue-500"
-                    : "border-[#333] hover:bg-[#1a1a1a]"
+                    ? "bg-sky-600 text-white"
+                    : "bg-[#1a1a1a] text-gray-400 hover:bg-[#222]"
                 }`}
               >
                 {tab.label}
@@ -142,91 +137,152 @@ const Hierarchy = ({ open, onClose }) => {
             ))}
           </div>
 
-          <div className="flex-1 overflow-auto p-4">
-            {activeTab === "top" &&
-              (modules.length > 0 ? (
-                <div className="grid grid-cols-3 gap-10 place-items-center">
-                  {modules.map((item, index) => (
-                    <div
-                      key={index}
-                      onClick={() => handleModuleClick(item)}
-                      className="bg-sky-500 px-8 py-4 rounded min-w-[260px] text-center font-semibold cursor-pointer hover:bg-sky-600 transition"
-                    >
-                      {item}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-gray-400">No hierarchy data available</div>
-              ))}
+          <div className="flex-1 overflow-auto p-6 font-mono text-sm text-white">
+            {activeTab === "top" && (
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {modules.map((item, index) => (
+                  <div
+                    key={index}
+                    onClick={() => handleTopModuleClick(item)}
+                    className="bg-sky-600 hover:bg-sky-700 transition rounded-xl py-4 px-6 text-center font-semibold cursor-pointer shadow-lg"
+                  >
+                    {item}
+                  </div>
+                ))}
+              </div>
+            )}
 
             {activeTab === "detail" && (
-              <div className="text-gray-300 font-mono text-sm">
+              <>
                 {loading ? (
-                  <p className="text-gray-400">Loading Module Details...</p>
-                ) : selectedModule ? (
+                  <div className="flex-1 overflow-auto p-4 text-gray-300">
+                    {loading && (
+                      <div className="py-12 text-center">
+                        <Loader size="3.5em" />
+                        <div className="mt-3 text-gray-400 text-sm">
+                          Generating Module.....
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : moduleDetails ? (
                   <>
-                    <div className="font-bold mb-6 text-lg text-white">
-                      Module: {selectedModule}
+                    <div className="text-xl font-bold text-white mb-6">
+                      Module: {moduleDetails.module}
                     </div>
 
-                    <div className="grid gap-10">
+                    <div className="space-y-6">
                       <div>
-                        <div className="font-bold text-sky-400 mb-2">
-                          INPUTS
-                        </div>
-                        <div className="-mt-3">-------</div>
-
-                        {inputs.length > 0 ? (
-                          inputs.map((i, idx) => <div key={idx}>{i}</div>)
-                        ) : (
-                          <div className="text-gray-500">No Inputs</div>
-                        )}
+                        <div className="text-sky-400 font-semibold">INPUTS</div>
+                        {(moduleDetails.inputs || []).map((inp, i) => (
+                          <div key={i}>{inp}</div>
+                        ))}
                       </div>
 
                       <div>
-                        <div className="font-bold text-yellow-400 mb-2">
+                        <div className="text-yellow-400 font-semibold">
                           INTERNAL SIGNALS
                         </div>
-                        <div className="-mt-3">----------------</div>
-                        {internalSignals.length > 0 ? (
-                          internalSignals.map((sig, idx) => (
-                            <div key={idx}>
-                              {typeof sig === "string" ? sig : sig?.name}
-                            </div>
-                          ))
-                        ) : (
-                          <div className="text-gray-500">
-                            No Internal Signals
-                          </div>
-                        )}
+                        {internalSignals.map((sig, i) => (
+                          <div key={i}>{sig}</div>
+                        ))}
                       </div>
 
                       <div>
-                        <div className="font-bold text-green-400 mb-2">
+                        <div className="text-green-400 font-semibold">
                           OUTPUTS
                         </div>
-                        <div className="-mt-3">-------</div>
+                        {(moduleDetails.outputs || []).map((out, i) => (
+                          <div key={i}>{out}</div>
+                        ))}
+                      </div>
 
-                        {outputs.length > 0 ? (
-                          outputs.map((o, idx) => <div key={idx}>{o}</div>)
-                        ) : (
-                          <div className="text-gray-500">No Outputs</div>
-                        )}
+                      <div className="mt-4 border-t border-[#222] pt-4 text-white">
+                        Inputs: {moduleDetails.counts?.inputs || 0} | Outputs:{" "}
+                        {moduleDetails.counts?.outputs || 0} | Signals:{" "}
+                        {moduleDetails.counts?.signals || 0}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div>Select a module</div>
+                )}
+              </>
+            )}
 
-                        <div className="mt-4 text-sm text-white border-t border-gray-5  00 pt-2">
-                          Inputs: {inputs.length} | Outputs: {outputs.length} |
-                          Signals: {internalSignals.length}
+            {activeTab === "graph" && (
+              <>
+                {loading ? (
+                  <div className="flex-1 overflow-auto p-4 text-gray-300">
+                    {loading && (
+                      <div className="py-12 text-center">
+                        <Loader size="3.5em" />
+                        <div className="mt-3 text-gray-400 text-sm">
+                          Generating Module.....
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : moduleGraph ? (
+                  <>
+                    <div className="text-sm font-bold text-white mb-6 bg-sky-700 px-6 py-3 inline-block rounded">
+                      MODULE: {moduleGraph.module}
+                    </div>
+
+                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                      <div>
+                        <div className="bg-teal-600 text-white font-semibold text-center py-2 rounded-t">
+                          INPUTS ({moduleGraph.inputs?.length || 0})
+                        </div>
+                        <div className="bg-[#1a1a1a] p-3 space-y-2 rounded-b border border-[#333]">
+                          {moduleGraph.inputs?.map((inp, i) => (
+                            <div
+                              key={i}
+                              className="bg-[#111] border border-gray-700 px-3 py-2 text-sm rounded"
+                            >
+                              {inp.name} {inp.range}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="bg-amber-500 text-white font-semibold text-center py-2 rounded-t">
+                          SIGNALS ({moduleGraph.internal_signals?.length || 0})
+                        </div>
+                        <div className="bg-[#1a1a1a] p-3 space-y-2 rounded-b border border-[#333] h-full overflow-y-auto">
+                          {moduleGraph.internal_signals?.map((sig, i) => (
+                            <div
+                              key={i}
+                              className="bg-[#111] border border-gray-700 px-3 py-2 text-sm rounded"
+                            >
+                              {sig}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="bg-red-500 text-white font-semibold text-center py-2 rounded-t">
+                          OUTPUTS ({moduleGraph.outputs?.length || 0})
+                        </div>
+                        <div className="bg-[#1a1a1a] p-3 space-y-2 rounded-b border border-[#333]">
+                          {moduleGraph.outputs?.map((out, i) => (
+                            <div
+                              key={i}
+                              className="bg-[#111] border border-gray-700 px-3 py-2 text-sm rounded"
+                            >
+                              {out.name} {out.range}
+                            </div>
+                          ))}
                         </div>
                       </div>
                     </div>
                   </>
                 ) : (
-                  <div className="text-gray-400">
-                    Select a module to view details
-                  </div>
+                  <div>No Graph Data</div>
                 )}
-              </div>
+              </>
             )}
           </div>
         </div>

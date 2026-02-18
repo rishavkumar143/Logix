@@ -49,6 +49,7 @@ function LogixExplorer() {
         setFileName={setFileName}
         setProjectFiles={setProjectFiles}
         setActiveFile={setActiveFile}
+        fileName={fileName}
       />
 
       <CodeEditor
