@@ -144,7 +144,7 @@ const Hierarchy = ({ open, onClose }) => {
                   <div
                     key={index}
                     onClick={() => handleTopModuleClick(item)}
-                    className="bg-sky-600 hover:bg-sky-700 transition rounded-xl py-4 px-6 text-center font-semibold cursor-pointer shadow-lg"
+                    className="bg-sky-600 hover:bg-sky-900 transition rounded-xl py-4 px-6 text-center font-semibold cursor-pointer shadow-lg"
                   >
                     {item}
                   </div>

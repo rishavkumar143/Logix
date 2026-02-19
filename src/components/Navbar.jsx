@@ -6,6 +6,7 @@ import { baseUrl_2 } from "../baseUrl";
 import Hierarchy from "./Hirearchy";
 import GenerateReport from "./GenerateReport";
 import Schematic from "./Schematic";
+import BlockDiagram from "./BlockDiagram";
 
 const Navbar = ({
   setEditorContent,
@@ -28,6 +29,8 @@ const Navbar = ({
   const [showFindModal, setShowFindModal] = useState(false);
   const [findQuery, setFindQuery] = useState("");
   const [findDecorations, setFindDecorations] = useState([]);
+  const [showBlockDiagram, setShowBlockDiagram] = useState(false);
+
 
   const [recentFiles, setRecentFiles] = useState(
     JSON.parse(localStorage.getItem("recentFiles")) || [],
@@ -379,6 +382,18 @@ const Navbar = ({
     }
   };
 
+  const handleUndo = () => {
+    if (window.monacoEditor) {
+      window.monacoEditor.trigger("keyboard", "undo", null);
+    }
+  };
+
+  const handleRedo = () => {
+    if (window.monacoEditor) {
+      window.monacoEditor.trigger("keyboard", "redo", null);
+    }
+  };
+
   const rowStyle =
     "flex justify-between px-3 py-[6px] text-[13px] hover:bg-[#0078d4] hover:text-white cursor-pointer";
 
@@ -492,12 +507,26 @@ const Navbar = ({
                   {/* EDIT MENU */}
                   {key === "edit" && (
                     <>
-                      <li className={rowStyle}>
+                      <li
+                        className={rowStyle}
+                        onClick={() => {
+                          handleUndo();
+                          setMenu({ open: null, recent: false });
+                        }}
+                      >
                         Undo <span className="opacity-60">Ctrl+Z</span>
                       </li>
-                      <li className={rowStyle}>
+
+                      <li
+                        className={rowStyle}
+                        onClick={() => {
+                          handleRedo();
+                          setMenu({ open: null, recent: false });
+                        }}
+                      >
                         Redo <span className="opacity-60">Ctrl+Y</span>
                       </li>
+
                       <li
                         className={rowStyle}
                         onClick={() => {
@@ -592,6 +621,15 @@ const Navbar = ({
                   {/* ================= GENERATE VIEW ================= */}
                   {key === "visualization" && (
                     <>
+<li
+  className={rowStyle}
+  onClick={() => {
+    setShowBlockDiagram(true);
+    setMenu({ open: null, recent: false });
+  }}
+>
+  Block Diagram View
+</li>
                       <li
                         className={rowStyle}
                         onClick={() => {
@@ -681,13 +719,15 @@ const Navbar = ({
         className="hidden"
         onChange={handleFolderUpload}
       />
-      {/* GENERATE REPORT POPUP */}
+      {/* Generate Report */}
       <GenerateReport open={showReport} onClose={() => setShowReport(false)} />
-
       {/* Schematic */}
       <Schematic open={showSchematic} onClose={() => setShowSchematic(false)} />
-
+      {/* Hierarchy */}
       <Hierarchy open={showHierarchy} onClose={() => setShowHierarchy(false)} />
+      {/* BlockDiagram */}
+      <BlockDiagram open={showBlockDiagram} onClose={() => setShowBlockDiagram(false)}/>
+
       {showFindModal && (
         <div
           className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40"
