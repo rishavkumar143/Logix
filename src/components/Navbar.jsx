@@ -31,7 +31,6 @@ const Navbar = ({
   const [findDecorations, setFindDecorations] = useState([]);
   const [showBlockDiagram, setShowBlockDiagram] = useState(false);
 
-
   const [recentFiles, setRecentFiles] = useState(
     JSON.parse(localStorage.getItem("recentFiles")) || [],
   );
@@ -346,7 +345,7 @@ const Navbar = ({
 
   const handleExit = () => clearAll();
 
-  const handleFind = () => {
+  const handleFind = async () => {
     if (!findQuery.trim()) return;
     if (!window.monacoEditor) return;
 
@@ -354,31 +353,47 @@ const Navbar = ({
     const model = editor.getModel();
     if (!model) return;
 
-    const matches = model.findMatches(
-      findQuery,
-      true,
-      false,
-      false,
-      null,
-      true,
-    );
+    try {
+      // 🔥 Clear old highlights
+      editor.deltaDecorations(findDecorations, []);
+      setFindDecorations([]);
 
-    console.log("Total matches:", matches.length);
+      // (Optional) Call API but ignore line numbers
+      try {
+        await axios.post("https://python.verifplay.com/editor/find/", {
+          query: findQuery,
+          code: model.getValue(),
+        });
+      } catch (err) {
+        console.log("API ignored, using Monaco search only");
+      }
 
-    const newDecorations = matches.map((match) => ({
-      range: match.range,
-      options: {
-        inlineClassName: "myFindHighlight",
-      },
-    }));
+      // 🔥 Pure Monaco search (No line numbers used)
+      const matches = model.findMatches(
+        findQuery,
+        false, // search scope
+        false, // isRegex
+        false, // matchCase
+        null,
+        true, // captureMatches
+      );
 
-    // 🔥 Proper replace (IMPORTANT)
-    const newIds = editor.deltaDecorations(findDecorations, newDecorations);
+      const decorations = matches.map((match) => ({
+        range: match.range,
+        options: {
+          inlineClassName: "myFindHighlight",
+        },
+      }));
 
-    setFindDecorations(newIds);
+      const newIds = editor.deltaDecorations([], decorations);
+      setFindDecorations(newIds);
 
-    if (matches.length) {
-      editor.revealRangeInCenter(matches[0].range);
+      // 🔥 Scroll to first result
+      if (matches.length > 0) {
+        editor.revealRangeInCenter(matches[0].range);
+      }
+    } catch (error) {
+      console.error("Find failed:", error);
     }
   };
 
@@ -594,7 +609,76 @@ const Navbar = ({
                       >
                         Generate APB/UVM Testbench
                       </li>
-                      <li className={rowStyle}>Generate AXI Testbench</li>
+                      <li
+                        className={rowStyle}
+                        //   onClick={async () => {
+                        //   if (!window.monacoEditor) {
+                        //     alert("Editor not ready");
+                        //     return;
+                        //   }
+
+                        //   const code = window.monacoEditor.getValue();
+
+                        //   if (!code.trim()) {
+                        //     alert("Code is empty");
+                        //     return;
+                        //   }
+
+                        //   // Remove comments
+                        //   const cleanedCode = code
+                        //     .replace(/\/\/.*$/gm, "")
+                        //     .replace(/\/\*[\s\S]*?\*\//g, "");
+
+                        //   // Extract module name
+                        //   const moduleMatch = cleanedCode.match(/\bmodule\s+([a-zA-Z_][a-zA-Z0-9_]*)/);
+
+                        //   if (!moduleMatch) {
+                        //     alert("No module found in RTL");
+                        //     return;
+                        //   }
+
+                        //   const moduleName = moduleMatch[1];
+                        //   console.log("FINAL MODULE NAME:", moduleName);
+
+                        //   try {
+                        //     const res = await axios.post(
+                        //       "https://python.verifplay.com/generate/axi/",
+                        //       {
+                        //         module_name: moduleName,
+                        //         code: code,
+                        //       },
+                        //       {
+                        //         headers: { "Content-Type": "application/json" },
+                        //       }
+                        //     );
+
+                        //     // Directly handle string response
+                        //     const output =
+                        //       res.data?.testbench ||
+                        //       res.data?.result ||
+                        //       res.data?.output ||
+                        //       res.data;
+
+                        //     if (window.setTestbenchFromAPI) {
+                        //       window.setTestbenchFromAPI(output);
+                        //     }
+
+                        //   } catch (err) {
+                        //     console.error("AXI ERROR:", err.response?.data);
+
+                        //     if (window.setTestbenchFromAPI) {
+                        //       window.setTestbenchFromAPI(
+                        //         "// AXI Testbench generation failed\n\n" +
+                        //         (err.response?.data?.error || "Unknown server error")
+                        //       );
+                        //     }
+                        //   }
+
+                        //   setMenu({ open: null, recent: false });
+                        // }}
+                      >
+                        Generate AXI Testbench
+                      </li>{" "}
                       {/* GENERATE REPORT */}
                       <li
                         className={rowStyle}
@@ -621,15 +705,15 @@ const Navbar = ({
                   {/* ================= GENERATE VIEW ================= */}
                   {key === "visualization" && (
                     <>
-<li
-  className={rowStyle}
-  onClick={() => {
-    setShowBlockDiagram(true);
-    setMenu({ open: null, recent: false });
-  }}
->
-  Block Diagram View
-</li>
+                      <li
+                        className={rowStyle}
+                        onClick={() => {
+                          setShowBlockDiagram(true);
+                          setMenu({ open: null, recent: false });
+                        }}
+                      >
+                        Block Diagram View
+                      </li>
                       <li
                         className={rowStyle}
                         onClick={() => {
@@ -697,9 +781,6 @@ const Navbar = ({
             {btn.label}
           </button>
         ))}
-
-        {/* <div className="w-px h-6 bg-[#3b4b55] mx-2" />
-        <span className="text-xs text-gray-400">Ready</span> */}
       </div>
 
       {/* File Inputs */}
@@ -726,8 +807,12 @@ const Navbar = ({
       {/* Hierarchy */}
       <Hierarchy open={showHierarchy} onClose={() => setShowHierarchy(false)} />
       {/* BlockDiagram */}
-      <BlockDiagram open={showBlockDiagram} onClose={() => setShowBlockDiagram(false)}/>
+      <BlockDiagram
+        open={showBlockDiagram}
+        onClose={() => setShowBlockDiagram(false)}
+      />
 
+      {/* Find Popup */}
       {showFindModal && (
         <div
           className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40"
@@ -761,6 +846,7 @@ const Navbar = ({
                     window.monacoEditor.deltaDecorations(findDecorations, []);
                   }
                   setFindDecorations([]);
+                  setFindQuery("");
                   setShowFindModal(false);
                 }}
                 className="bg-[#0078d4] text-white px-5 py-1 text-sm"
@@ -772,6 +858,7 @@ const Navbar = ({
         </div>
       )}
 
+      {/* Header Preview */}
       {showHeaderPreview && (
         <div
           className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-xs"
