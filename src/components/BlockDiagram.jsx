@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import Schematic from "./Schematic"
-import Hierarchy from "./Hirearchy"
+import Schematic from "./Schematic";
+import Hierarchy from "./Hirearchy";
 import ReactFlow, { Background, Handle, Position, MarkerType } from "reactflow";
 import "reactflow/dist/style.css";
 
@@ -15,7 +15,7 @@ const pinLabelStyle = {
 
 /* ---------------- SPI NODE ---------------- */
 const SpiNode = ({ data, showPorts }) => {
-    const scale = data.scale || 1;
+  const scale = data.scale || 1;
   return (
     <div
       style={{
@@ -26,8 +26,8 @@ const SpiNode = ({ data, showPorts }) => {
         color: "white",
         borderRadius: "2px",
         position: "relative",
-         transform: `scale(${scale})`,
-    transformOrigin: "center",
+        transform: `scale(${scale})`,
+        transformOrigin: "center",
       }}
     >
       <div
@@ -44,7 +44,6 @@ const SpiNode = ({ data, showPorts }) => {
       </div>
 
       <div style={{ height: "140px", position: "relative" }}>
-        
         {/* LEFT PORTS */}
         {!showPorts && (
           <div
@@ -58,7 +57,10 @@ const SpiNode = ({ data, showPorts }) => {
             }}
           >
             {["sck", "MOSI", "cs"].map((label) => (
-              <div key={label} style={{ display: "flex", alignItems: "center" }}>
+              <div
+                key={label}
+                style={{ display: "flex", alignItems: "center" }}
+              >
                 <div
                   style={{
                     width: "8px",
@@ -67,7 +69,13 @@ const SpiNode = ({ data, showPorts }) => {
                     borderRadius: "50%",
                   }}
                 />
-                <span style={{ color: "#00ff9c", fontSize: "12px", margin: "0 4px" }}>
+                <span
+                  style={{
+                    color: "#00ff9c",
+                    fontSize: "12px",
+                    margin: "0 4px",
+                  }}
+                >
                   ➤➤
                 </span>
                 <span style={pinLabelStyle}>{label}</span>
@@ -111,7 +119,9 @@ const SpiNode = ({ data, showPorts }) => {
             />
 
             <span style={{ color: "#ff5c5c", fontSize: "12px" }}>MISO</span>
-            <span style={{ color: "#ff5c5c", fontSize: "12px", margin: "0 4px" }}>
+            <span
+              style={{ color: "#ff5c5c", fontSize: "12px", margin: "0 4px" }}
+            >
               ➤➤
             </span>
 
@@ -132,20 +142,20 @@ const SpiNode = ({ data, showPorts }) => {
 
 /* ---------------- MODULE NODE ---------------- */
 const ModuleNode = ({ data }) => {
-    const scale = data.scale || 1;
+  const scale = data.scale || 1;
   return (
     <div
       style={{
         width: 200,
         height: 100,
-        background: "#e67e22",
-        border: "2px solid #f39c12",
+        background: data.color === "green" ? "#3cc47c" : "#e67e22",
+border: data.color === "green" ? "2px solid #2ecc71" : "2px solid #f39c12",
         color: "white",
         textAlign: "center",
         paddingTop: 10,
         borderRadius: "4px",
         transform: `scale(${scale})`,
-transformOrigin: "center",
+        transformOrigin: "center",
       }}
     >
       <div style={{ fontWeight: "bold", marginBottom: "5px" }}>
@@ -180,26 +190,26 @@ const BlockDiagram = ({ open, onClose }) => {
   const [diagramData, setDiagramData] = useState(null);
   const [selectedBlock, setSelectedBlock] = useState(null);
   const [showPorts, setShowPorts] = useState(false);
-const [openSchematic, setOpenSchematic] = useState(false);
-const [openHierarchy, setOpenHierarchy] = useState(false);
-const [splitLayout, setSplitLayout] = useState(false);
-const [boxScale, setBoxScale] = useState(1);
+  const [openSchematic, setOpenSchematic] = useState(false);
+  const [openHierarchy, setOpenHierarchy] = useState(false);
+  const [splitLayout, setSplitLayout] = useState(false);
+  const [boxScale, setBoxScale] = useState(1);
   const handleZoomIn = () => setZoomLevel((z) => z + 0.1);
   const handleZoomOut = () => setZoomLevel((z) => Math.max(0.2, z - 0.1));
   const handleResetZoom = () => setZoomLevel(1);
-  
+
   const handleRefreshLayout = () => {
-  setSplitLayout(true);
+    setSplitLayout(true);
 
-  // random size change
-  const randomScale = Math.random() * 1.2 + 0.6; 
-  setBoxScale(randomScale);
-};
+    // random size change
+    const randomScale = Math.random() * 1.2 + 0.6;
+    setBoxScale(randomScale);
+  };
 
-const handleFitViewLayout = () => {
-  setSplitLayout(false);
-  setBoxScale(1); // original size
-};
+  const handleFitViewLayout = () => {
+    setSplitLayout(false);
+    setBoxScale(1); // original size
+  };
 
   const handleNodeClick = (event, node) => {
     const isTop = node.type === "spiNode";
@@ -235,62 +245,68 @@ const handleFitViewLayout = () => {
   const nodes = [];
 
   nodes.push({
-  id: "SPI_slave",
-  type: "spiNode",
-  position: { x: 750, y: 50 },
-  data: { label: "SPI_slave", showPorts: showPorts , scale:boxScale },
-});
+    id: "SPI_slave",
+    type: "spiNode",
+    position: { x: 750, y: 50 },
+    data: { label: "SPI_slave", showPorts: showPorts, scale: boxScale },
+  });
 
   if (diagramData?.blocks) {
     const otherBlocks = diagramData.blocks.filter(
       (b) => b.name !== "SPI_slave",
     );
-const firstRowMax = splitLayout
-  ? Math.floor(Math.random() * 4) + 2
-  : 8;
-
+const firstRowMax = 6;
     otherBlocks.forEach((block, index) => {
-      let xPos, yPos;
-      const spacingX = 220;
+  let xPos, yPos;
+  const spacingX = 220;
+const spacingY = 150;
 
-      if (!splitLayout) {
-  if (index < firstRowMax) {
-    xPos = index * spacingX;
-    yPos = 300;
-  } else {
-    const remainingCount = otherBlocks.length - firstRowMax;
-    const secondRowIndex = index - firstRowMax;
+const totalBlocks = otherBlocks.length;
 
-    const offset = ((firstRowMax - remainingCount) * spacingX) / 2;
+// data zyada → 5 per row, kam → 8 per row
+const boxesPerRow = totalBlocks > 12 ? 5 : 8;
 
-    xPos = secondRowIndex * spacingX + offset;
-    yPos = 450;
-  }
-} else {
-const col = index % firstRowMax;
-const row = Math.floor(index / firstRowMax);
-  xPos = col * spacingX + 300;
-  yPos = 300 + row * 150;
-}
+const col = index % boxesPerRow;
+const row = Math.floor(index / boxesPerRow);
 
-      nodes.push({
-        id: block.name,
-        type: "moduleNode",
-        position: { x: xPos, y: yPos },
-data: { label: block.name, instance: block.instance, scale: boxScale },
-      });
-    });
+// current row me kitne boxes
+const remaining = totalBlocks - row * boxesPerRow;
+const boxesInRow = Math.min(boxesPerRow, remaining);
+
+// row ko center karna (blue box x = 750)
+const rowWidth = (boxesInRow - 1) * spacingX;
+const startX = 750 - rowWidth / 2;
+
+xPos = startX + col * spacingX;
+yPos = 300 + row * spacingY;
+
+  const isLargeData = otherBlocks.length > 12;
+  const isGreen = isLargeData && index % 4 === 0;
+
+  nodes.push({
+    id: block.name,
+    type: "moduleNode",
+    position: { x: xPos, y: yPos },
+    data: {
+      label: block.name,
+      instance: block.instance,
+      scale: boxScale,
+      color: isGreen ? "green" : "orange"
+    },
+  });
+
+});
   }
   const edges =
-  diagramData?.connections?.map((conn, index) => ({
-    id: "e" + index,
-    source: conn.from,
-    target: conn.to,
-    type: "smoothstep",
-    animated: true,
-    markerEnd: { type: MarkerType.ArrowClosed, color: "#00ff9c" },
-    style: { stroke: "#00ff9c", strokeWidth: 2 },
-  })) || [];
+    diagramData?.connections?.map((conn, index) => ({
+      id: "e" + index,
+      source: conn.from,
+      target: conn.to,
+      type: "smoothstep",
+      animated: true,
+      markerEnd: { type: MarkerType.ArrowClosed, color: "#00ff9c" },
+      style: { stroke: "#00ff9c", strokeWidth: 2 },
+    })) || [];
   const dataLoaded = diagramData && diagramData.blocks;
 
   return (
@@ -324,12 +340,13 @@ data: { label: block.name, instance: block.instance, scale: boxScale },
 
               <div className="flex gap-4">
                 <label>
-  <input
-    type="checkbox"
-    checked={showPorts}
-    onChange={(e) => setShowPorts(e.target.checked)}
-  /> Ports
-</label>
+                  <input
+                    type="checkbox"
+                    checked={showPorts}
+                    onChange={(e) => setShowPorts(e.target.checked)}
+                  />{" "}
+                  Ports
+                </label>
                 <label>
                   <input type="checkbox" /> Cells
                 </label>
@@ -372,18 +389,18 @@ data: { label: block.name, instance: block.instance, scale: boxScale },
                 </button>
 
                 <button
-  onClick={handleFitViewLayout}
-  className="bg-[#2d8db3] px-4 py-1.5"
->
-  Fit View
-</button>
+                  onClick={handleFitViewLayout}
+                  className="bg-[#2d8db3] px-4 py-1.5"
+                >
+                  Fit View
+                </button>
 
-<button
-  onClick={handleRefreshLayout}
-  className="bg-[#2d8db3] px-4 py-1.5"
->
-  Refresh
-</button>
+                <button
+                  onClick={handleRefreshLayout}
+                  className="bg-[#2d8db3] px-4 py-1.5"
+                >
+                  Refresh
+                </button>
                 <button className="bg-[#2d8db3] px-4 py-1.5">Export PNG</button>
               </div>
             </div>
@@ -396,28 +413,30 @@ data: { label: block.name, instance: block.instance, scale: boxScale },
               </span>
 
               <div className="flex items-center gap-3 flex-wrap">
+                <button
+                  disabled={!dataLoaded}
+                  onClick={() => setOpenSchematic(true)}
+                  className={`px-4 py-1.5 ${
+                    dataLoaded
+                      ? "bg-[#2d8db3]"
+                      : "bg-gray-600 cursor-not-allowed"
+                  }`}
+                >
+                  View Schematic
+                </button>
 
-<button
-  disabled={!dataLoaded}
-  onClick={() => setOpenSchematic(true)}
-  className={`px-4 py-1.5 ${
-    dataLoaded ? "bg-[#2d8db3]" : "bg-gray-600 cursor-not-allowed"
-  }`}
->
-  View Schematic
-</button>
-
-<button
-  disabled={!dataLoaded}
-  onClick={() => setOpenHierarchy(true)}
-  className={`px-4 py-1.5 ${
-    dataLoaded ? "bg-[#2d8db3]" : "bg-gray-600 cursor-not-allowed"
-  }`}
->
-  Hierarchy View
-</button>
-
-</div>
+                <button
+                  disabled={!dataLoaded}
+                  onClick={() => setOpenHierarchy(true)}
+                  className={`px-4 py-1.5 ${
+                    dataLoaded
+                      ? "bg-[#2d8db3]"
+                      : "bg-gray-600 cursor-not-allowed"
+                  }`}
+                >
+                  Hierarchy View
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -439,12 +458,12 @@ data: { label: block.name, instance: block.instance, scale: boxScale },
             }}
           >
             <ReactFlow
-  nodes={nodes}
-edges={!showPorts ? edges : []}
-nodeTypes={nodeTypes}
-  onNodeClick={handleNodeClick}
-  fitView
->
+              nodes={nodes}
+              edges={!showPorts ? edges : []}
+              nodeTypes={nodeTypes}
+              onNodeClick={handleNodeClick}
+              fitView
+            >
               <Background color="#333" gap={12} />
             </ReactFlow>
           </div>
@@ -501,18 +520,18 @@ nodeTypes={nodeTypes}
         )}
       </div>
       {openSchematic && (
-  <Schematic
-    open={openSchematic}
-    onClose={() => setOpenSchematic(false)}
-  />
-)}
+        <Schematic
+          open={openSchematic}
+          onClose={() => setOpenSchematic(false)}
+        />
+      )}
 
-{openHierarchy && (
-  <Hierarchy
-    open={openHierarchy}
-    onClose={() => setOpenHierarchy(false)}
-  />
-)}
+      {openHierarchy && (
+        <Hierarchy
+          open={openHierarchy}
+          onClose={() => setOpenHierarchy(false)}
+        />
+      )}
     </div>
   );
 };
