@@ -2,25 +2,50 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Schematic from "./Schematic";
 import Hierarchy from "./Hirearchy";
-import ReactFlow, { Background, Handle, Position, MarkerType } from "reactflow";
+import ReactFlow, { Background, Handle, Position, MarkerType, useUpdateNodeInternals } from "reactflow";
 import "reactflow/dist/style.css";
 
-/* ---------------- CUSTOM STYLES ---------------- */
-const pinLabelStyle = {
-  fontSize: "10px",
+
+const pinLabelStyle = (size) => ({
+  fontSize: `${size}px`,
   color: "#00ff9c",
   margin: "0 5px",
   fontWeight: "normal",
-};
+});
 
-/* ---------------- SPI NODE ---------------- */
-const SpiNode = ({ data, showPorts }) => {
+const SpiNode = ({ id, data }) => {
+  const updateNodeInternals = useUpdateNodeInternals();
+
   const scale = data.scale || 1;
+
+  const leftPorts = data.leftPorts || [];
+  const rightPorts = data.rightPorts || [];
+  const showPorts = data.showPorts;
+
+  useEffect(() => {
+    updateNodeInternals(id);
+  }, [leftPorts, rightPorts, showPorts]);
+  console.log("LEFT", leftPorts);
+  console.log("RIGHT", rightPorts);
+  console.log("SHOW PORTS", showPorts);
+
+  const baseHeight = 140;
+  const portGap = 18;
+
+  const maxPorts = Math.max(leftPorts.length, rightPorts.length);
+
+  const containerHeight = Math.max(baseHeight, maxPorts * portGap);
+
+  let dynamicFont = 12;
+
+  if (maxPorts > 10) dynamicFont = 10;
+  if (maxPorts > 18) dynamicFont = 9;
+  if (maxPorts > 25) dynamicFont = 8;
   return (
     <div
       style={{
         width: 250,
-        minHeight: 140,
+        minHeight: 150,
         background: "#3a95c9",
         border: "2px solid #5aa9d6",
         color: "white",
@@ -43,23 +68,23 @@ const SpiNode = ({ data, showPorts }) => {
         {data.label}
       </div>
 
-      <div style={{ height: "140px", position: "relative" }}>
-        {/* LEFT PORTS */}
-        {!showPorts && (
-          <div
-            style={{
-              position: "absolute",
-              left: "-60px",
-              top: "20px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "25px",
-            }}
-          >
-            {["sck", "MOSI", "cs"].map((label) => (
+      <div style={{ height: `${containerHeight}px`, position: "relative" }}>
+        {showPorts &&
+          leftPorts.map((label, index) => {
+            const top =
+              ((index + 1) / (leftPorts.length + 1)) * containerHeight;
+
+            return (
               <div
                 key={label}
-                style={{ display: "flex", alignItems: "center" }}
+                style={{
+                  position: "absolute",
+                  top: top,
+                  left: "-90px",
+                  display: "flex",
+                  alignItems: "center",
+                  transform: "translateY(-50%)",
+                }}
               >
                 <div
                   style={{
@@ -69,78 +94,88 @@ const SpiNode = ({ data, showPorts }) => {
                     borderRadius: "50%",
                   }}
                 />
-                <span
+
+                <span style={{ color: "#00ff9c", margin: "0 4px" }}>➤➤</span>
+
+                <span style={pinLabelStyle(dynamicFont)}>{label}</span>
+
+                <span style={{ color: "#00ff9c", margin: "0 4px" }}>➤</span>
+
+                <div
                   style={{
-                    color: "#00ff9c",
-                    fontSize: "12px",
-                    margin: "0 4px",
+                    width: "6px",
+                    height: "6px",
+                    background: "#00ff9c",
+                    borderRadius: "50%",
                   }}
-                >
-                  ➤➤
-                </span>
-                <span style={pinLabelStyle}>{label}</span>
-                <span style={{ color: "#00ff9c", fontSize: "12px" }}>➤</span>
+                />
 
                 <Handle
                   type="target"
                   position={Position.Left}
                   id={`in-${label}`}
                   style={{
-                    position: "relative",
                     background: "transparent",
                     border: "none",
                   }}
                 />
               </div>
-            ))}
-          </div>
-        )}
+            );
+          })}
 
-        {/* RIGHT PORT */}
-        {!showPorts && (
-          <div
-            style={{
-              position: "absolute",
-              right: "-75px",
-              top: "30px",
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            <Handle
-              type="source"
-              position={Position.Right}
-              id="out-miso"
-              style={{
-                position: "relative",
-                background: "transparent",
-                border: "none",
-              }}
-            />
+        {showPorts &&
+          rightPorts.map((label, index) => {
+            const top =
+              ((index + 1) / (rightPorts.length + 1)) * containerHeight;
+            return (
+              <div
+                key={label}
+                style={{
+                  position: "absolute",
+                  top: top,
+                  right: "-80px",
+                  display: "flex",
+                  alignItems: "center",
+                  transform: "translateY(-50%)",
+                }}
+              >
+                <Handle
+                  type="source"
+                  position={Position.Right}
+                  id={`out-${label}`}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                  }}
+                />
 
-            <span style={{ color: "#ff5c5c", fontSize: "12px" }}>MISO</span>
-            <span
-              style={{ color: "#ff5c5c", fontSize: "12px", margin: "0 4px" }}
-            >
-              ➤➤
-            </span>
+                <span
+                  style={{
+                    color: "#ff5c5c",
+                    fontSize: dynamicFont,
+                  }}
+                >
+                  {label}
+                </span>
 
-            <div
-              style={{
-                width: "8px",
-                height: "8px",
-                background: "#ff5c5c",
-                borderRadius: "50%",
-              }}
-            />
-          </div>
-        )}
+                <span style={{ color: "#ff5c5c", margin: "0 4px" }}>➤➤</span>
+
+                <div
+                  style={{
+                    width: "8px",
+                    height: "8px",
+                    background: "#ff5c5c",
+                    borderRadius: "50%",
+                  }}
+                />
+              </div>
+            );
+          })}
       </div>
     </div>
   );
 };
 
-/* ---------------- MODULE NODE ---------------- */
 const ModuleNode = ({ data }) => {
   const scale = data.scale || 1;
   return (
@@ -149,7 +184,8 @@ const ModuleNode = ({ data }) => {
         width: 200,
         height: 100,
         background: data.color === "green" ? "#3cc47c" : "#e67e22",
-border: data.color === "green" ? "2px solid #2ecc71" : "2px solid #f39c12",
+        border:
+          data.color === "green" ? "2px solid #2ecc71" : "2px solid #f39c12",
         color: "white",
         textAlign: "center",
         paddingTop: 10,
@@ -177,19 +213,67 @@ border: data.color === "green" ? "2px solid #2ecc71" : "2px solid #f39c12",
     </div>
   );
 };
+const LegendNode = () => {
+  return (
+    <div
+      style={{
+        width: 180,
+        background: "#111",
+        border: "1px solid #444",
+        borderRadius: "4px",
+        color: "white",
+      }}
+    >
+      <div
+        style={{
+          background: "#3a95c9",
+          padding: "5px",
+          fontWeight: "bold",
+          fontSize: "11px",
+          textAlign: "center",
+          borderBottom: "1px solid #5aa9d6",
+        }}
+      >
+        SIGNAL COLOR MEANING
+      </div>
 
-const nodeTypes = {
-  spiNode: (props) => <SpiNode {...props} showPorts={props.data.showPorts} />,
-  moduleNode: ModuleNode,
+      <div style={{ padding: "8px" }}>
+        <Legend color="bg-cyan-400" label="Clock Signals" />
+        <Legend color="bg-red-500" label="Reset Signals" />
+        <Legend color="bg-green-400" label="Connected Nets" />
+        <Legend color="bg-purple-400" label="Control Signals" />
+        <Legend color="bg-yellow-400" label="Bus Signals" />
+        <Legend color="bg-pink-400" label="Control Path" />
+      </div>
+    </div>
+  );
 };
 
-/* ---------------- MAIN COMPONENT ---------------- */
+const Legend = ({ color, label }) => (
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      gap: "6px",
+      marginBottom: "4px",
+    }}
+  >
+    <div className={`w-3 h-3 ${color}`} />
+    <span style={{ fontSize: "10px", color: "#ddd" }}>{label}</span>
+  </div>
+);
+const nodeTypes = {
+  spiNode: SpiNode,
+  moduleNode: ModuleNode,
+  legendNode: LegendNode,
+};
+
 const BlockDiagram = ({ open, onClose }) => {
   const [zoomLevel, setZoomLevel] = useState(1);
   const [showBlockInfo, setShowBlockInfo] = useState(true);
   const [diagramData, setDiagramData] = useState(null);
   const [selectedBlock, setSelectedBlock] = useState(null);
-  const [showPorts, setShowPorts] = useState(false);
+  const [showPorts, setShowPorts] = useState(true);
   const [openSchematic, setOpenSchematic] = useState(false);
   const [openHierarchy, setOpenHierarchy] = useState(false);
   const [splitLayout, setSplitLayout] = useState(false);
@@ -201,14 +285,13 @@ const BlockDiagram = ({ open, onClose }) => {
   const handleRefreshLayout = () => {
     setSplitLayout(true);
 
-    // random size change
     const randomScale = Math.random() * 1.2 + 0.6;
     setBoxScale(randomScale);
   };
 
   const handleFitViewLayout = () => {
     setSplitLayout(false);
-    setBoxScale(1); // original size
+    setBoxScale(1);
   };
 
   const handleNodeClick = (event, node) => {
@@ -233,6 +316,7 @@ const BlockDiagram = ({ open, onClose }) => {
           "https://python.verifplay.com/build-block-diagram/",
         );
         setDiagramData(res.data);
+        console.log("FULL DATA :", res.data);
       } catch (err) {
         console.error("API Error:", err);
       }
@@ -244,58 +328,96 @@ const BlockDiagram = ({ open, onClose }) => {
 
   const nodes = [];
 
+  let topBlockName = "TOP";
+
+  if (diagramData?.blocks?.length > 0) {
+    topBlockName = diagramData.blocks[0].name;
+  }
+
+  const topBlock = diagramData?.blocks?.[0] || {};
+
+  const allPorts =
+    diagramData?.blocks?.flatMap((block) => block.ports || []) || [];
+
+  const leftPorts = [
+    ...new Set(
+      allPorts.filter((p) => p.direction === "input").map((p) => p.name),
+    ),
+  ];
+
+  const rightPorts = [
+    ...new Set(
+      allPorts.filter((p) => p.direction === "output").map((p) => p.name),
+    ),
+  ];
+  const baseHeight = 140;
+  const portGap = 18;
+  const maxPorts = Math.max(leftPorts.length, rightPorts.length);
+  const dynamicTopHeight = Math.max(baseHeight, maxPorts * portGap);
+
   nodes.push({
-    id: "SPI_slave",
+    id: topBlockName,
     type: "spiNode",
     position: { x: 750, y: 50 },
-    data: { label: "SPI_slave", showPorts: showPorts, scale: boxScale },
+    data: {
+      id: topBlockName,
+      label: topBlockName,
+      showPorts: showPorts,
+      scale: boxScale,
+      leftPorts: leftPorts,
+      rightPorts: rightPorts,
+    },
+  });
+
+  nodes.push({
+    id: "legend-box",
+    type: "legendNode",
+    position: { x: 1200, y: 40 },
+    draggable: false,
+    selectable: false,
   });
 
   if (diagramData?.blocks) {
     const otherBlocks = diagramData.blocks.filter(
-      (b) => b.name !== "SPI_slave",
+      (b) => b.name !== topBlockName,
     );
-const firstRowMax = 6;
+    const firstRowMax = 6;
     otherBlocks.forEach((block, index) => {
-  let xPos, yPos;
-  const spacingX = 220;
-const spacingY = 150;
+      let xPos, yPos;
+      const spacingX = 220;
+      const spacingY = 150;
 
-const totalBlocks = otherBlocks.length;
+      const totalBlocks = otherBlocks.length;
 
-// data zyada → 5 per row, kam → 8 per row
-const boxesPerRow = totalBlocks > 12 ? 5 : 8;
+      const boxesPerRow = totalBlocks > 12 ? 5 : 8;
 
-const col = index % boxesPerRow;
-const row = Math.floor(index / boxesPerRow);
+      const col = index % boxesPerRow;
+      const row = Math.floor(index / boxesPerRow);
 
-// current row me kitne boxes
-const remaining = totalBlocks - row * boxesPerRow;
-const boxesInRow = Math.min(boxesPerRow, remaining);
+      const remaining = totalBlocks - row * boxesPerRow;
+      const boxesInRow = Math.min(boxesPerRow, remaining);
 
-// row ko center karna (blue box x = 750)
-const rowWidth = (boxesInRow - 1) * spacingX;
-const startX = 750 - rowWidth / 2;
+      const rowWidth = (boxesInRow - 1) * spacingX;
+      const startX = 750 - rowWidth / 2;
 
-xPos = startX + col * spacingX;
-yPos = 300 + row * spacingY;
+      xPos = startX + col * spacingX;
+      const topOffset = dynamicTopHeight + 120;
+      yPos = topOffset + row * spacingY;
+      const isLargeData = otherBlocks.length > 12;
+      const isGreen = isLargeData && index % 4 === 0;
 
-  const isLargeData = otherBlocks.length > 12;
-  const isGreen = isLargeData && index % 4 === 0;
-
-  nodes.push({
-    id: block.name,
-    type: "moduleNode",
-    position: { x: xPos, y: yPos },
-    data: {
-      label: block.name,
-      instance: block.instance,
-      scale: boxScale,
-      color: isGreen ? "green" : "orange"
-    },
-  });
-
-});
+      nodes.push({
+        id: block.name,
+        type: "moduleNode",
+        position: { x: xPos, y: yPos },
+        data: {
+          label: block.name,
+          instance: block.instance,
+          scale: boxScale,
+          color: isGreen ? "green" : "orange",
+        },
+      });
+    });
   }
   const edges =
     diagramData?.connections?.map((conn, index) => ({
@@ -315,11 +437,9 @@ yPos = 300 + row * spacingY;
       onClick={onClose}
     >
       <div
-        className="w-[90%] h-[90vh] bg-black text-white border border-white rounded-md overflow-hidden shadow-2xl flex flex-col"
+        className="w-[80%] h-[85vh] bg-black text-white border border-white rounded-md overflow-hidden shadow-2xl flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* HEADER */}
-
         <div className="h-9 bg-[#1b1b1b] border-b border-gray-700 flex items-center justify-between px-4 text-sm">
           <span>Block Diagram</span>
           <button onClick={onClose} className="text-white hover:text-gray-400">
@@ -327,12 +447,8 @@ yPos = 300 + row * spacingY;
           </button>
         </div>
 
-        {/* CONTROLS */}
-
         <div className="px-4 pt-3 pb-3 border-b border-gray-700">
           <div className="flex items-center justify-center gap-6 text-xs">
-            {/* Filters */}
-
             <div className="relative border border-gray-600 px-4 pt-4 pb-6 w-[24%]">
               <span className="absolute -top-3 left-3 bg-black px-2 text-gray-300">
                 Filters
@@ -342,8 +458,8 @@ yPos = 300 + row * spacingY;
                 <label>
                   <input
                     type="checkbox"
-                    checked={showPorts}
-                    onChange={(e) => setShowPorts(e.target.checked)}
+                    checked={!showPorts}
+                    onChange={() => setShowPorts((prev) => !prev)}
                   />{" "}
                   Ports
                 </label>
@@ -358,8 +474,6 @@ yPos = 300 + row * spacingY;
                 </label>
               </div>
             </div>
-
-            {/* View */}
 
             <div className="relative border border-gray-600 px-4 pt-4 pb-3 w-[42%]">
               <span className="absolute -top-3 left-3 bg-black px-2 text-gray-300">
@@ -405,8 +519,6 @@ yPos = 300 + row * spacingY;
               </div>
             </div>
 
-            {/* Advanced */}
-
             <div className="relative border border-gray-600 px-4 pt-4 pb-3 w-[30%]">
               <span className="absolute -top-3 left-3 bg-black px-2 text-gray-300">
                 Advanced
@@ -441,15 +553,11 @@ yPos = 300 + row * spacingY;
           </div>
         </div>
 
-        {/* STATUS */}
-
         <div className="px-4 py-2 border-b border-gray-700 text-gray-300 text-xs">
           Ready - Click on any block for details
         </div>
 
-        {/* DIAGRAM */}
-
-        <div className="flex-1 overflow-auto bg-[#0b0b0b]">
+        <div className="flex-1 overflow-auto bg-[#0b0b0b] relative">
           <div
             style={{
               transform: `scale(${zoomLevel})`,
@@ -459,7 +567,7 @@ yPos = 300 + row * spacingY;
           >
             <ReactFlow
               nodes={nodes}
-              edges={!showPorts ? edges : []}
+              edges={edges}
               nodeTypes={nodeTypes}
               onNodeClick={handleNodeClick}
               fitView
@@ -468,8 +576,6 @@ yPos = 300 + row * spacingY;
             </ReactFlow>
           </div>
         </div>
-
-        {/* BLOCK INFO */}
 
         {showBlockInfo && (
           <div className="h-40 bg-[#0f0f0f] border-t border-gray-700 px-4 py-3 text-sm flex flex-col">
