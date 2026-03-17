@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { CirclePlay, CirclePause, CookingPot } from "lucide-react";
-import Loader from "./loader";
+import Loader from "./Loader";
 
 const Schematic = ({ open, onClose }) => {
   if (!open) return null;

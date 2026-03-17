@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { baseUrl_1 } from "../baseUrl";
-import Loader from "./loader";
+import Loader from "./Loader";
 
 const Hierarchy = ({ open, onClose }) => {
   const [activeTab, setActiveTab] = useState("top");

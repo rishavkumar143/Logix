@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import Loader from "./loader";
+import Loader from "./Loader";
 import { baseUrl_2 } from "../baseUrl";
 
 const SummaryBox = ({ label, value }) => (
